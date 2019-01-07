@@ -34,6 +34,7 @@ public class Robot extends TimedRobot {
 
   public static TeleOp teleopCommand;
   public static Drive2903 driveSubsystem;
+  public static NavX2903 navXSubsystem;
 
   public static AHRS ahrs;
 
@@ -52,6 +53,7 @@ public class Robot extends TimedRobot {
     m_oi = new OI();
     teleopCommand = new TeleOp();
     driveSubsystem = new Drive2903();
+    navXSubsystem = new NavX2903();
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);

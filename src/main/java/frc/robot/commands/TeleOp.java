@@ -17,12 +17,6 @@ import frc.robot.Robot;
  */
 public class TeleOp extends Command {
 
-  private boolean collisionDetected;
-  private double last_world_linear_accel_x;
-  private double last_world_linear_accel_y;
-
-  final static double kCollisionThreshold_DeltaG = 0.5f;
-
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.driveSubsystem);
@@ -32,31 +26,16 @@ public class TeleOp extends Command {
   @Override
   protected void initialize() {
     Robot.driveSubsystem.init();
-    collisionDetected = false;
-
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
     double forward = Robot.driveJoy.getY(Hand.kLeft);
-    // double side = Robot.driveJoy.getX(Hand.kLeft);
+    //double side = Robot.driveJoy.getX(Hand.kLeft);
     double turn = Robot.driveJoy.getX(Hand.kRight);
 
-    collisionDetected = false;
-    double curr_world_linear_accel_x = Robot.ahrs.getWorldLinearAccelX();
-    double currentJerkX = curr_world_linear_accel_x - last_world_linear_accel_x;
-    last_world_linear_accel_x = curr_world_linear_accel_x;
-    double curr_world_linear_accel_y = Robot.ahrs.getWorldLinearAccelY();
-    double currentJerkY = curr_world_linear_accel_y - last_world_linear_accel_y;
-    last_world_linear_accel_y = curr_world_linear_accel_y;
-
-    if ((Math.abs(currentJerkX) > kCollisionThreshold_DeltaG)
-        || (Math.abs(currentJerkY) > kCollisionThreshold_DeltaG)) {
-      collisionDetected = true;
-    }
-
-    SmartDashboard.putBoolean("Collision detected", collisionDetected);
+    SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
     Robot.driveSubsystem.arcadeDrive(forward, turn);
   }
 
