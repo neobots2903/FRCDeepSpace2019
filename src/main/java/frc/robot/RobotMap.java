@@ -26,11 +26,11 @@ public class RobotMap {
 
   public static int TBD = 0;
 
-  public static int LeftFrontMotor = TBD;
-  public static int RightFrontMotor = TBD;
-  public static int LeftRearMotor = TBD;
-  public static int RightRearMotor = TBD;
+  public static int LeftFrontMotor = 33;
+  public static int RightFrontMotor = 31;
+  public static int LeftRearMotor = 34;
+  public static int RightRearMotor = 32;
 
-  public static int DriveJoy = TBD;
-  public static int OpJoy = TBD;
+  public static int DriveJoy = 0;
+  public static int OpJoy = 1;
 }

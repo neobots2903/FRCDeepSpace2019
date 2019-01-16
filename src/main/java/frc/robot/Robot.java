@@ -51,9 +51,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_oi = new OI();
-    teleopCommand = new TeleOp();
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
+    teleopCommand = new TeleOp();
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);
@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
     opJoy = new Joystick(RobotMap.OpJoy);
 
     m_chooser.setDefaultOption("Default Auto", new Autonomous());
-    // chooser.addOption("My Auto", new MyAutoCommand());
+    m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
     SmartDashboard.putData("Auto mode", m_chooser);
   }
 

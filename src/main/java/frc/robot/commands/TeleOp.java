@@ -31,9 +31,9 @@ public class TeleOp extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double forward = Robot.driveJoy.getY(Hand.kLeft);
+    double forward = Robot.driveJoy.getRawAxis(1);
     //double side = Robot.driveJoy.getX(Hand.kLeft);
-    double turn = Robot.driveJoy.getX(Hand.kRight);
+    double turn = Robot.driveJoy.getRawAxis(4);
 
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
     Robot.driveSubsystem.arcadeDrive(forward, turn);
