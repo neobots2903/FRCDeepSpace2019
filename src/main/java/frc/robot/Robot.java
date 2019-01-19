@@ -35,6 +35,7 @@ public class Robot extends TimedRobot {
   public static TeleOp teleopCommand;
   public static Drive2903 driveSubsystem;
   public static NavX2903 navXSubsystem;
+  public static MiniPID2903 pidSubsytem;
 
   public static AHRS ahrs;
 
@@ -51,6 +52,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_oi = new OI();
+    pidSubsytem = new MiniPID2903(3.5, 0, 0.1);
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();

@@ -22,7 +22,7 @@ public class CargoVisionTest extends Command {
   NetworkTableEntry tx; //Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees)
   NetworkTableEntry ta; //Target Area (0% of image to 100% of image)
   NetworkTableEntry tv; //Whether the limelight has any valid targets (0 or 1)
-  double turn;
+  double turn = 0;
   double maxSpeed = 0.5;
 
   public CargoVisionTest() {
@@ -39,19 +39,30 @@ public class CargoVisionTest extends Command {
     tv = table.getEntry("tv");
     table.getEntry("ledMode").setNumber(1); // forces LED off
     table.getEntry("pipeline").setNumber(1); // sets cargo pipeline
+    Robot.pidSubsytem.setSetpoint(0);
+
+    SmartDashboard.putNumber("P", Robot.pidSubsytem.getP());
+    SmartDashboard.putNumber("I", Robot.pidSubsytem.getI());
+    SmartDashboard.putNumber("D", Robot.pidSubsytem.getD());
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
+    double p = SmartDashboard.getNumber("P", 0);
+    double i = SmartDashboard.getNumber("I", 0);
+    double d = SmartDashboard.getNumber("D", 0);
+
+    Robot.pidSubsytem.setPID(p, i, d);
+
     if (getEntryValue(tv) == 0) {
-      Robot.driveSubsystem.arcadeDrive(0, 0);
+      Robot.driveSubsystem.arcadeDrive(0, turn);
     } else {
-      turn = percentToTarget(getEntryValue(tx),27);
-      Robot.driveSubsystem.arcadeDrive(0, (turn > maxSpeed) ? maxSpeed : turn);
+      //turn = percentToTarget(getEntryValue(tx),27);
+      turn = Robot.pidSubsytem.getOutput(getEntryValue(tx));
+      Robot.driveSubsystem.arcadeDrive(0, turn);
     }
-    SmartDashboard.putNumber("Turn speed", 
-      (turn > maxSpeed) ? maxSpeed : turn);
+    SmartDashboard.putNumber("Turn speed", turn);
     SmartDashboard.putNumber("Tx", getEntryValue(tx));
   }
 
