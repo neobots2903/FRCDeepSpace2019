@@ -48,6 +48,11 @@ public class Drive2903 extends Subsystem {
 
 		RightRearMotor.configPeakOutputForward(maxOutput, 0);
     RightRearMotor.configPeakOutputReverse(-maxOutput, 0);
+
+    LeftFrontMotor.set(ControlMode.PercentOutput, 0);
+    LeftRearMotor.set(ControlMode.PercentOutput, 0);
+    RightFrontMotor.set(ControlMode.PercentOutput, 0) ;
+    RightRearMotor.set(ControlMode.PercentOutput, 0);
   }
 
 /*

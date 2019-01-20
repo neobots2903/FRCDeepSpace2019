@@ -26,11 +26,18 @@ public class RobotMap {
 
   public static int TBD = 0;
 
-  public static int LeftFrontMotor = 33;
-  public static int RightFrontMotor = 31;
-  public static int LeftRearMotor = 34;
-  public static int RightRearMotor = 32;
+  //Talon SRX IDs
+  public static final int LeftFrontMotor = 33;
+  public static final int RightFrontMotor = 31;
+  public static final int LeftRearMotor = 34;
+  public static final int RightRearMotor = 32;
 
-  public static int DriveJoy = 0;
-  public static int OpJoy = 1;
+  //Controller #'s
+  public static final int DriveJoy = 0;
+  public static final int OpJoy = 1;
+
+  //DIO Ports
+  public static final int LineSensorLeft = 1;
+  public static final int LineSensorCenter = 0;
+  public static final int LineSensorRight = 2;
 }

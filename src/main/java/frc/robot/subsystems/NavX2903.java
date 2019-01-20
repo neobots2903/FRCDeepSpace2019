@@ -28,6 +28,10 @@ public class NavX2903 extends Subsystem {
     // setDefaultCommand(new MySpecialCommand());
   }
 
+  public double turnAngle() {
+    return Robot.ahrs.getAngle();
+  }
+
   public boolean isColliding() {
     collisionDetected = false;
     double curr_world_linear_accel_x = Robot.ahrs.getWorldLinearAccelX();

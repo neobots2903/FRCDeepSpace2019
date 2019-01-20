@@ -7,19 +7,16 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 
 /**
- * Super duper TeleOp command
+ * An example command.  You can replace me with your own command.
  */
-public class TeleOp extends Command {
-
-  public TeleOp() {
+public class LineFollower extends Command {
+  public LineFollower() {
     // Use requires() here to declare subsystem dependencies
-    requires(Robot.driveSubsystem);
+    requires(Robot.m_subsystem);
   }
 
   // Called just before this Command runs the first time
@@ -30,18 +27,12 @@ public class TeleOp extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double forward = Robot.driveJoy.getRawAxis(1);
-    //double side = Robot.driveJoy.getX(Hand.kLeft);
-    double turn = Robot.driveJoy.getRawAxis(4);
-
-    SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
-    SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
-
-    SmartDashboard.putBoolean("Line left?", Robot.lineSubsystem.leftDetected());
-    SmartDashboard.putBoolean("Line center?", Robot.lineSubsystem.centerDetected());
-    SmartDashboard.putBoolean("Line right?", Robot.lineSubsystem.rightDetected());
-
-    Robot.driveSubsystem.arcadeDrive(forward, turn);
+    if (Robot.lineSubsystem.leftDetected())
+      Robot.driveSubsystem.arcadeDrive(0,-0.4);
+    else if (Robot.lineSubsystem.rightDetected())
+      Robot.driveSubsystem.arcadeDrive(0,0.4);
+    else 
+      Robot.driveSubsystem.arcadeDrive(-0.2,0);
   }
 
   // Make this return true when this Command no longer needs to run execute()

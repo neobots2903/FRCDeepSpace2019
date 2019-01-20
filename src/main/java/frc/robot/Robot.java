@@ -11,6 +11,8 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
@@ -28,19 +30,31 @@ import frc.robot.subsystems.*;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot {
+public class Robot extends TimedRobot implements PIDOutput {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
 
   public static TeleOp teleopCommand;
   public static Drive2903 driveSubsystem;
   public static NavX2903 navXSubsystem;
-  public static MiniPID2903 pidSubsytem;
+  public static MiniPID2903 pidSubsystem;
+  public static PIDController turnController;
+  public static PIDOutput pidOutput;
+  public static LineSensor2903 lineSubsystem;
+  public static Limelight2903 limelightSubsystem;
 
   public static AHRS ahrs;
 
   public static Joystick driveJoy;
   public static Joystick opJoy;
+
+  public static final double kP = 0.03;
+  public static final double kI = 0;
+  public static final double kD = 0;
+  public static final double kF = 0;
+  static final double kToleranceDegrees = 1.0;
+
+  public static double rotateToAngleRate = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -52,10 +66,15 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_oi = new OI();
-    pidSubsytem = new MiniPID2903(3.5, 0, 0.1);
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();
+    lineSubsystem = new LineSensor2903();
+    limelightSubsystem = new Limelight2903();
+
+    driveSubsystem.init();
+    lineSubsystem.init();
+    limelightSubsystem.init();
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);
@@ -63,11 +82,26 @@ public class Robot extends TimedRobot {
       DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
     }
 
+    pidSubsystem = new MiniPID2903(0, 0, 0);
+
+    turnController = new PIDController(kP,kI,kD,kF,ahrs,this);
+    turnController.setInputRange(-180.0f, 180.0f);
+    turnController.setOutputRange(-1.0, 1.0);
+    turnController.setAbsoluteTolerance(kToleranceDegrees);
+    turnController.setContinuous(true);
+
+    SmartDashboard.putNumber("kP",kP);
+    SmartDashboard.putNumber("kI",kI);
+    SmartDashboard.putNumber("kD",kD);
+    SmartDashboard.putNumber("kF",kF);
+
     driveJoy = new Joystick(RobotMap.DriveJoy);
     opJoy = new Joystick(RobotMap.OpJoy);
 
     m_chooser.setDefaultOption("Default Auto", new Autonomous());
     m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
+    m_chooser.addOption("Gyro Test", new GyroTest());
+    m_chooser.addOption("Line Follower", new LineFollower());
     SmartDashboard.putData("Auto mode", m_chooser);
   }
 
@@ -160,5 +194,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
+  }
+
+  @Override
+  public void pidWrite(double output) {
+    rotateToAngleRate = output;
   }
 }
