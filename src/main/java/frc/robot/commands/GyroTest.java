@@ -34,36 +34,36 @@ public class GyroTest extends Command {
     double kI = SmartDashboard.getNumber("kI",Robot.kI);
     double kD = SmartDashboard.getNumber("kD",Robot.kD);
     double kF = SmartDashboard.getNumber("kF",Robot.kF);
-    Robot.turnController.setPID(kP, kI, kD, kF);
+    Robot.gyroController.setPID(kP, kI, kD, kF);
 
     boolean rotateToAngle = false;
 
    if (Robot.driveJoy.getRawButton(4)) {
-     Robot.turnController.setSetpoint(0.0f);
+     Robot.gyroController.setSetpoint(0.0f);
      rotateToAngle = true;
    } else if (Robot.driveJoy.getRawButton(2)) {
-    Robot.turnController.setSetpoint(90.0f);
+    Robot.gyroController.setSetpoint(90.0f);
     rotateToAngle = true;
    } else if (Robot.driveJoy.getRawButton(1)) {
-    Robot.turnController.setSetpoint(179.9f);
+    Robot.gyroController.setSetpoint(179.9f);
     rotateToAngle = true;
    } else if (Robot.driveJoy.getRawButton(3)) {
-    Robot.turnController.setSetpoint(-90.0f);
+    Robot.gyroController.setSetpoint(-90.0f);
     rotateToAngle = true;
    }
 
    if (rotateToAngle) {
-     Robot.turnController.enable();
-     Robot.driveSubsystem.arcadeDrive(0, Robot.rotateToAngleRate);
+     Robot.gyroController.enable();
+     Robot.driveSubsystem.arcadeDrive(0, Robot.gyroPIDTurn);
    } else {
-     Robot.turnController.disable();
+     Robot.gyroController.disable();
      Robot.driveSubsystem.arcadeDrive(0, 0);
    }
 
    SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
    SmartDashboard.putBoolean("Rotate to Angle?", rotateToAngle);
-   SmartDashboard.putNumber("Target Angle", Robot.turnController.getSetpoint());
-   SmartDashboard.putNumber("RotateToAngleRate", Robot.rotateToAngleRate);
+   SmartDashboard.putNumber("Target Angle", Robot.gyroController.getSetpoint());
+   SmartDashboard.putNumber("RotateToAngleRate", Robot.gyroPIDTurn);
   }
 
   // Make this return true when this Command no longer needs to run execute()

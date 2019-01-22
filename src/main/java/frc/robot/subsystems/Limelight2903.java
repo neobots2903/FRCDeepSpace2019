@@ -9,13 +9,15 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.PIDSource;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.networktables.NetworkTable;
 
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
-public class Limelight2903 extends Subsystem {
+public class Limelight2903 extends Subsystem implements PIDSource {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   NetworkTable table;
@@ -54,4 +56,26 @@ public class Limelight2903 extends Subsystem {
   double getEntryValue(NetworkTableEntry entry) {
     return entry.getNumber(0).doubleValue();
   }
+
+  public double getTX(){
+    return getEntryValue(tx);
+  }
+
+  public double getTA(){
+    return getEntryValue(ta);
+  }
+
+  @Override
+  public void setPIDSourceType(PIDSourceType pidSource) {
+  }
+
+  @Override
+  public PIDSourceType getPIDSourceType() {
+    return PIDSourceType.kDisplacement;
+  }
+
+  @Override
+  public double pidGet() {
+    return getTX();
+}
 }

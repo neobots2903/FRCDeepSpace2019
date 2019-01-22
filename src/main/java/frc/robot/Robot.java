@@ -30,16 +30,20 @@ import frc.robot.subsystems.*;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot implements PIDOutput {
+public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
 
   public static TeleOp teleopCommand;
   public static Drive2903 driveSubsystem;
   public static NavX2903 navXSubsystem;
-  public static MiniPID2903 pidSubsystem;
-  public static PIDController turnController;
-  public static PIDOutput pidOutput;
+
+  public static PIDController gyroController;
+  public static PIDController visionController;
+
+  public static PIDOutput visionOutput;
+  public static PIDOutput gyroOutput;
+
   public static LineSensor2903 lineSubsystem;
   public static Limelight2903 limelightSubsystem;
 
@@ -48,13 +52,19 @@ public class Robot extends TimedRobot implements PIDOutput {
   public static Joystick driveJoy;
   public static Joystick opJoy;
 
+  public static final double vKP = 0.03;
+  public static final double vKI = 0;
+  public static final double vKD = 0;
+  public static final double vKF = 0;
+  
   public static final double kP = 0.03;
   public static final double kI = 0;
   public static final double kD = 0;
   public static final double kF = 0;
-  static final double kToleranceDegrees = 1.0;
+  public static final double kToleranceDegrees = 1.0;
 
-  public static double rotateToAngleRate = 0;
+  public static double gyroPIDTurn = 0;
+  public static double visionPIDTurn = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -69,11 +79,14 @@ public class Robot extends TimedRobot implements PIDOutput {
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();
-    lineSubsystem = new LineSensor2903();
+    //lineSubsystem = new LineSensor2903();
     limelightSubsystem = new Limelight2903();
 
+    visionOutput = new VisionPIDOutput();
+    gyroOutput = new GyroPIDOutput();
+
     driveSubsystem.init();
-    lineSubsystem.init();
+    //lineSubsystem.init();
     limelightSubsystem.init();
 
     try {
@@ -81,14 +94,18 @@ public class Robot extends TimedRobot implements PIDOutput {
     } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
     }
+   
+    visionController = new PIDController(vKP, vKI, vKD, vKF, limelightSubsystem, visionOutput);
+    visionController.setInputRange(-27f, 27f);
+    visionController.setOutputRange(-1.0, 1.0);
+    visionController.setAbsoluteTolerance(kToleranceDegrees);
+    visionController.setContinuous(true);
 
-    pidSubsystem = new MiniPID2903(0, 0, 0);
-
-    turnController = new PIDController(kP,kI,kD,kF,ahrs,this);
-    turnController.setInputRange(-180.0f, 180.0f);
-    turnController.setOutputRange(-1.0, 1.0);
-    turnController.setAbsoluteTolerance(kToleranceDegrees);
-    turnController.setContinuous(true);
+    gyroController = new PIDController(kP,kI,kD,kF,ahrs,gyroOutput);
+    gyroController.setInputRange(-180.0f, 180.0f);
+    gyroController.setOutputRange(-1.0, 1.0);
+    gyroController.setAbsoluteTolerance(kToleranceDegrees);
+    gyroController.setContinuous(true);
 
     SmartDashboard.putNumber("kP",kP);
     SmartDashboard.putNumber("kI",kI);
@@ -100,6 +117,7 @@ public class Robot extends TimedRobot implements PIDOutput {
 
     m_chooser.setDefaultOption("Default Auto", new Autonomous());
     m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
+    m_chooser.addOption("Target Vision Test", new TargetVisionTest());
     m_chooser.addOption("Gyro Test", new GyroTest());
     m_chooser.addOption("Line Follower", new LineFollower());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -169,6 +187,22 @@ public class Robot extends TimedRobot implements PIDOutput {
     Scheduler.getInstance().run();
   }
 
+ class VisionPIDOutput implements PIDOutput {
+
+    @Override
+    public void pidWrite(double output) {
+      Robot.visionPIDTurn = output;
+    }
+}
+
+ class GyroPIDOutput implements PIDOutput {
+
+  @Override
+  public void pidWrite(double output) {
+    Robot.gyroPIDTurn = output;
+  }
+}
+
   @Override
   public void teleopInit() {
     // This makes sure that the autonomous stops running when
@@ -194,10 +228,5 @@ public class Robot extends TimedRobot implements PIDOutput {
    */
   @Override
   public void testPeriodic() {
-  }
-
-  @Override
-  public void pidWrite(double output) {
-    rotateToAngleRate = output;
   }
 }

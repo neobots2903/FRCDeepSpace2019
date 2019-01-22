@@ -72,12 +72,11 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 */
 
 public void arcadeDrive(double forward, double side, double turn) {
-  double scale = (forward + turn + side > 1) ? 1 / (forward + turn + side) : 1;
   LeftFrontMotor.set(ControlMode.PercentOutput, (-turn + forward + side));
   LeftRearMotor.set(ControlMode.PercentOutput, (-turn + forward - side));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (-turn - forward - side)) ;
-  RightRearMotor.set(ControlMode.PercentOutput, (-turn - forward + side));
+  RightFrontMotor.set(ControlMode.PercentOutput, (-turn - forward + side)) ;
+  RightRearMotor.set(ControlMode.PercentOutput, (-turn - forward - side));
 }
 
   public void arcadeDrive(double forward, double turn) {

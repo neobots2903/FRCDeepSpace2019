@@ -40,4 +40,6 @@ public class RobotMap {
   public static final int LineSensorLeft = 1;
   public static final int LineSensorCenter = 0;
   public static final int LineSensorRight = 2;
+  public static final int LineSensorFarLeft = 3;
+  public static final int LineSensorFarRight = 4;
 }

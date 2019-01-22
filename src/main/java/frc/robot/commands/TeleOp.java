@@ -7,7 +7,6 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
@@ -31,17 +30,19 @@ public class TeleOp extends Command {
   @Override
   protected void execute() {
     double forward = Robot.driveJoy.getRawAxis(1);
-    //double side = Robot.driveJoy.getX(Hand.kLeft);
+    double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
 
     SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
 
+    /*
     SmartDashboard.putBoolean("Line left?", Robot.lineSubsystem.leftDetected());
     SmartDashboard.putBoolean("Line center?", Robot.lineSubsystem.centerDetected());
     SmartDashboard.putBoolean("Line right?", Robot.lineSubsystem.rightDetected());
+    */
 
-    Robot.driveSubsystem.arcadeDrive(forward, turn);
+    Robot.driveSubsystem.arcadeDrive(forward, side, turn);
   }
 
   // Make this return true when this Command no longer needs to run execute()
