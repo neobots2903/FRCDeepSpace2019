@@ -19,6 +19,9 @@ public class TargetVisionTest extends Command {
   long endTime = 0;
   boolean sideChanged = true;
   double maxTA = 10;
+  int targetDistance = 440;
+  int distanceError = 25;
+  double maxSpeed = 0.4;
 
   double forward = 0;
   double side = 0;
@@ -64,25 +67,43 @@ public class TargetVisionTest extends Command {
     double ta = Robot.limelightSubsystem.getTA();
     double tx = Robot.limelightSubsystem.getTX();
 
-    if (!SmartDashboard.getBoolean("Target Vision: Turn Only", true)) {
+    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionPIDTurn;
+
+    if (!SmartDashboard.getBoolean("Target Vision: Turn Only", true) && turn < 0.05) {
+      if (Robot.lidarSubsystem.getStatus() == 0)
+      forward = (Math.abs(Robot.lidarSubsystem.getDistance() - targetDistance) < distanceError) ?
+      0 : percentToTarget(Robot.lidarSubsystem.getDistance(),targetDistance);
+      else
       forward = (Math.abs(ta) > maxTA) ? 0 : percentToTarget(ta,maxTA);
+      
       side = StrafeForTime(Robot.lineSubsystem.MoveToCenter(),500);
     } else {
       forward = 0;
       side = 0;
     }
 
-    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionPIDTurn;
+    //if (forward <= .1) forward = 0;
 
-    Robot.driveSubsystem.arcadeDrive(forward, side, turn);
+    Robot.driveSubsystem.arcadeDrive(checkMaxSpeed(forward), side, turn);
 
     SmartDashboard.putNumber("Turn speed", turn);
-    SmartDashboard.putNumber("Tx", Robot.limelightSubsystem.getTX());
+    SmartDashboard.putNumber("Forward speed", forward);
+    SmartDashboard.putNumber("Strafe speed", side);
+    SmartDashboard.putNumber("Distance(mm)", Robot.lidarSubsystem.getDistance());
+    SmartDashboard.putNumber("Lidar Status", Robot.lidarSubsystem.getStatus());
+    SmartDashboard.putNumber("Ta", ta);
+    SmartDashboard.putNumber("Tx", tx);
   }
 
   double percentToTarget(double value, double target) {
     double sign = (value < 0) ? -1 : 1;
     return ((target - Math.abs(value)) / target) * sign;
+  }
+
+  double checkMaxSpeed(double value) {
+    if (value > maxSpeed) return maxSpeed;
+    else if (value < -maxSpeed) return -maxSpeed;
+    else return value;
   }
 
   // Returns strafe speed until time runs out and strafe hasn't changed

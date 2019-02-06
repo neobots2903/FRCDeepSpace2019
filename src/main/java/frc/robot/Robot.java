@@ -45,6 +45,7 @@ public class Robot extends TimedRobot {
   public static PIDOutput gyroOutput;
 
   public static LineSensor2903 lineSubsystem;
+  public static Lidar2903 lidarSubsystem;
   public static Limelight2903 limelightSubsystem;
 
   public static AHRS ahrs;
@@ -52,12 +53,12 @@ public class Robot extends TimedRobot {
   public static Joystick driveJoy;
   public static Joystick opJoy;
 
-  public static final double vKP = 0.03;
+  public static final double vKP = 0.06;
   public static final double vKI = 0;
   public static final double vKD = 0;
   public static final double vKF = 0;
   
-  public static final double kP = 0.03;
+  public static final double kP = 0.06;
   public static final double kI = 0;
   public static final double kD = 0;
   public static final double kF = 0;
@@ -79,14 +80,16 @@ public class Robot extends TimedRobot {
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();
-    //lineSubsystem = new LineSensor2903();
+    
+    lidarSubsystem = new Lidar2903();
+    lineSubsystem = new LineSensor2903();
     limelightSubsystem = new Limelight2903();
 
     visionOutput = new VisionPIDOutput();
     gyroOutput = new GyroPIDOutput();
 
     driveSubsystem.init();
-    //lineSubsystem.init();
+    lineSubsystem.init();
     limelightSubsystem.init();
 
     try {

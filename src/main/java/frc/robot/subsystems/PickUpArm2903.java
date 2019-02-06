@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
@@ -23,12 +22,12 @@ public class PickUpArm2903 extends Subsystem {
     protected void initDefaultCommand() {
     }
     public PickUpArm2903(){
-        leftIntakeMotor = new WPI_TalonSRX(deviceNumber);
-        rightIntakeMotor = new WPI_TalonSRX(deviceNumber);
-        wristMotor = new WPI_TalonSRX(deviceNumber);
-        elbowMotor = new WPI_TalonSRX(deviceNumber);
-        leftPunch = new Solenoid(channel);
-        rightPunch = new Solenoid(channel);
+        leftIntakeMotor = new WPI_TalonSRX(RobotMap.TBD);
+        rightIntakeMotor = new WPI_TalonSRX(RobotMap.TBD);
+        wristMotor = new WPI_TalonSRX(RobotMap.TBD);
+        elbowMotor = new WPI_TalonSRX(RobotMap.TBD);
+        leftPunch = new Solenoid(RobotMap.TBD);
+        rightPunch = new Solenoid(RobotMap.TBD);
     }
 
     public void TakeIn() {

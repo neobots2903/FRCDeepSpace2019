@@ -17,8 +17,7 @@ import frc.robot.Robot;
  */
 public class CargoVisionTest extends Command {
   double turn = 0;
-  double maxSpeed = 0.5;
-  double maxError = 1;
+  double forward = 0;
 
   public CargoVisionTest() {
     // Use requires() here to declare subsystem dependencies
@@ -40,26 +39,37 @@ public class CargoVisionTest extends Command {
       SmartDashboard.putNumber("kD", Robot.visionController.getD());
       SmartDashboard.putNumber("kF", Robot.visionController.getF());
     }
+
+    Robot.visionController.enable();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    
+     
     double kP = SmartDashboard.getNumber("kP",Robot.vKP);
     double kI = SmartDashboard.getNumber("kI",Robot.vKI);
     double kD = SmartDashboard.getNumber("kD",Robot.vKD);
     double kF = SmartDashboard.getNumber("kF",Robot.vKF);
     Robot.visionController.setPID(kP, kI, kD, kF);
 
-   if (getEntryValue(Robot.limelightSubsystem.tv) == 0) {
-    Robot.driveSubsystem.arcadeDrive(0, turn);
-  } else {
-    turn = Robot.visionPIDTurn;
-    Robot.driveSubsystem.arcadeDrive(0, turn);
-  }
+    double tv = Robot.limelightSubsystem.getTV();
+    double tx = Robot.limelightSubsystem.getTX();
+    double ta = Robot.limelightSubsystem.getTA();
+    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionPIDTurn;
+
+    if (tv != 0 && Robot.lidarSubsystem.getDistance() > 300)
+      forward = (ta < 6.5) ? -percentToTarget(ta, 6.5)/3 : 0;
+    else if (Robot.lidarSubsystem.getDistance() <= 300)
+      forward = percentToTarget(Robot.lidarSubsystem.getDistance(), 300)/2;
+    else
+      forward = 0;
+
+  Robot.driveSubsystem.arcadeDrive(forward,turn);
+
   SmartDashboard.putNumber("Turn speed", turn);
-  SmartDashboard.putNumber("Tx", Robot.limelightSubsystem.getTX());
+  SmartDashboard.putNumber("Tx", tx);
+  SmartDashboard.putNumber("Ta", ta);
   }
 
   double getEntryValue(NetworkTableEntry entry) {

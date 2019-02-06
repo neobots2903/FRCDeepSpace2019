@@ -23,6 +23,7 @@ public class Drive2903 extends Subsystem {
   TalonSRX RightRearMotor;
 
   static double maxOutput = 1; //Reduce if robot is drawing too much power
+  static double speedScale = 1;
 
   @Override
   public void initDefaultCommand() {
@@ -72,11 +73,11 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 */
 
 public void arcadeDrive(double forward, double side, double turn) {
-  LeftFrontMotor.set(ControlMode.PercentOutput, (-turn + forward + side));
-  LeftRearMotor.set(ControlMode.PercentOutput, (-turn + forward - side));
+  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + side)));
+  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward - side)));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (-turn - forward + side)) ;
-  RightRearMotor.set(ControlMode.PercentOutput, (-turn - forward - side));
+  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + side))) ;
+  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward - side)));
 }
 
   public void arcadeDrive(double forward, double turn) {

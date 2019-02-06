@@ -32,7 +32,8 @@ public class TeleOp extends Command {
     double forward = Robot.driveJoy.getRawAxis(1);
     double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
-
+    SmartDashboard.putNumber("Distance(mm)", Robot.lidarSubsystem.getDistance());
+    SmartDashboard.putNumber("Lidar Status", Robot.lidarSubsystem.getStatus());
     SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
 

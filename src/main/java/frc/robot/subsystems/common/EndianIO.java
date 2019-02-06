@@ -10,6 +10,7 @@ public class EndianIO {
 		LITTLE_ENDIAN, BIG_ENDIAN
 	}
 
+	static int i2caddr = 0; //Dunno where to get the address on any I2C device...
 	/**
 	 * Read an unsigned byte from the I2C device
 	 */

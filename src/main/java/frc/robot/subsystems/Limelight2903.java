@@ -61,6 +61,10 @@ public class Limelight2903 extends Subsystem implements PIDSource {
     return getEntryValue(tx);
   }
 
+    public double getTV(){
+    return getEntryValue(tv);
+  }
+
   public double getTA(){
     return getEntryValue(ta);
   }
