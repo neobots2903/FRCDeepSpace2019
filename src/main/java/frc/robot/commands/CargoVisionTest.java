@@ -14,7 +14,7 @@ import frc.robot.Robot;
 import frc.robot.subsystems.Lidar2903.LidarPosition;
 
 /**
- * Follows cargo like a dog :P (Probably dangerous right now, so  C A R E F U L)
+ * Follows cargo like a dog :P (Probably dangerous right now, so C A R E F U L)
  */
 public class CargoVisionTest extends Command {
   double turn = 0;
@@ -36,11 +36,11 @@ public class CargoVisionTest extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-     
-    double skP = SmartDashboard.getNumber("VisStrf kP", Robot.visionStrafePIDF[0]);
-    double skI = SmartDashboard.getNumber("VisStrf kI", Robot.visionStrafePIDF[1]);
-    double skD = SmartDashboard.getNumber("VisStrf kD", Robot.visionStrafePIDF[2]);
-    double skF = SmartDashboard.getNumber("VisStrf kF", Robot.visionStrafePIDF[3]);
+
+    double skP = SmartDashboard.getNumber("VisStrf kP", Robot.visionStrafePIDF.vkP);
+    double skI = SmartDashboard.getNumber("VisStrf kI", Robot.visionStrafePIDF.vkI);
+    double skD = SmartDashboard.getNumber("VisStrf kD", Robot.visionStrafePIDF.vkD);
+    double skF = SmartDashboard.getNumber("VisStrf kF", Robot.visionStrafePIDF.vkF);
     Robot.visionStrafeController.setPID(skP, skI, skD, skF);
 
     double tv = Robot.limelightSubsystem.getTV();
@@ -49,17 +49,17 @@ public class CargoVisionTest extends Command {
     turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionStrafeValue;
 
     if (tv != 0 && Robot.lidarSubsystem.getDistance(LidarPosition.Center) > 300)
-      forward = (ta < 6.5) ? -percentToTarget(ta, 6.5)/3 : 0;
+      forward = (ta < 6.5) ? -percentToTarget(ta, 6.5) / 3 : 0;
     else if (Robot.lidarSubsystem.getDistance(LidarPosition.Center) <= 300)
-      forward = percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Center), 300)/2;
+      forward = percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Center), 300) / 2;
     else
       forward = 0;
 
-  Robot.driveSubsystem.arcadeDrive(forward,turn);
+    Robot.driveSubsystem.arcadeDrive(forward, turn);
 
-  SmartDashboard.putNumber("Turn speed", turn);
-  SmartDashboard.putNumber("Tx", tx);
-  SmartDashboard.putNumber("Ta", ta);
+    SmartDashboard.putNumber("Turn speed", turn);
+    SmartDashboard.putNumber("Tx", tx);
+    SmartDashboard.putNumber("Ta", ta);
   }
 
   double getEntryValue(NetworkTableEntry entry) {

@@ -60,9 +60,23 @@ public class Robot extends TimedRobot {
   public static Joystick driveJoy;
   public static Joystick opJoy;
 
-  public static final double[] visionTurnPIDF = new double[] {0.5, 0, 0, 0};
-  public static final double[] visionStrafePIDF = new double[] {0.1, 0, 0, 0};
-  public static final double[] gyroPIDF = new double[] {0.08, 0, 0, 0};
+  public static class PIDF {
+    public double vkP;
+    public double vkI;
+    public double vkD;
+    public double vkF;
+
+    public PIDF(double p, double i, double d, double f) {
+      vkP = p;
+      vkI = i;
+      vkD = d;
+      vkF = f;
+    }
+  }
+
+  public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
+  public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
+  public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
 
   public static final double kToleranceDegrees = 1.0;
 
@@ -83,7 +97,7 @@ public class Robot extends TimedRobot {
     driveSubsystem = new Drive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();
-    
+
     lidarSubsystem = new Lidar2903();
     lineSubsystem = new LineSensor2903();
     limelightSubsystem = new Limelight2903();
@@ -104,49 +118,46 @@ public class Robot extends TimedRobot {
     } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
     }
-   
-    visionTurnController = new PIDController(
-      visionTurnPIDF[0], visionTurnPIDF[1], visionTurnPIDF[2], visionTurnPIDF[3],
-      visionTurnSource, visionTurnOutput);
+
+    visionTurnController = new PIDController(visionTurnPIDF.vkP, visionTurnPIDF.vkI, visionTurnPIDF.vkD,
+        visionTurnPIDF.vkF, visionTurnSource, visionTurnOutput);
     visionTurnController.setInputRange(-45f, 45f);
     visionTurnController.setOutputRange(-1.0, 1.0);
     visionTurnController.setAbsoluteTolerance(kToleranceDegrees);
     visionTurnController.setContinuous(false);
 
-    visionStrafeController = new PIDController(
-      visionStrafePIDF[0], visionStrafePIDF[1], visionStrafePIDF[2], visionStrafePIDF[3],
-      visionStrafeSource, visionStrafeOutput);
+    visionStrafeController = new PIDController(visionStrafePIDF.vkP, visionStrafePIDF.vkI, visionStrafePIDF.vkD,
+        visionStrafePIDF.vkF, visionStrafeSource, visionStrafeOutput);
     visionTurnController.setInputRange(-27f, 27f);
     visionTurnController.setOutputRange(-1.0, 1.0);
     visionTurnController.setAbsoluteTolerance(kToleranceDegrees);
     visionTurnController.setContinuous(false);
 
-    gyroController = new PIDController(gyroPIDF[0], gyroPIDF[1], gyroPIDF[2], gyroPIDF[3],
-    ahrs,gyroOutput);
+    gyroController = new PIDController(gyroPIDF.vkP, gyroPIDF.vkI, gyroPIDF.vkD, gyroPIDF.vkF, ahrs, gyroOutput);
     gyroController.setInputRange(-180.0f, 180.0f);
     gyroController.setOutputRange(-1.0, 1.0);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(true);
 
-    SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF[0]);
-    SmartDashboard.putNumber("VisTurn kI", visionTurnPIDF[1]);
-    SmartDashboard.putNumber("VisTurn kD", visionTurnPIDF[2]);
-    SmartDashboard.putNumber("VisTurn kF", visionTurnPIDF[3]);
+    SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF.vkP);
+    SmartDashboard.putNumber("VisTurn kI", visionTurnPIDF.vkI);
+    SmartDashboard.putNumber("VisTurn kD", visionTurnPIDF.vkD);
+    SmartDashboard.putNumber("VisTurn kF", visionTurnPIDF.vkF);
 
-    SmartDashboard.putNumber("VisStrf kP", visionStrafePIDF[0]);
-    SmartDashboard.putNumber("VisStrf kI", visionStrafePIDF[1]);
-    SmartDashboard.putNumber("VisStrf kD", visionStrafePIDF[2]);
-    SmartDashboard.putNumber("VisStrf kF", visionStrafePIDF[3]);
+    SmartDashboard.putNumber("VisStrf kP", visionStrafePIDF.vkP);
+    SmartDashboard.putNumber("VisStrf kI", visionStrafePIDF.vkI);
+    SmartDashboard.putNumber("VisStrf kD", visionStrafePIDF.vkD);
+    SmartDashboard.putNumber("VisStrf kF", visionStrafePIDF.vkF);
 
-    SmartDashboard.putNumber("Gyro kP", gyroPIDF[0]);
-    SmartDashboard.putNumber("Gyro kI", gyroPIDF[1]);
-    SmartDashboard.putNumber("Gyro kD", gyroPIDF[2]);
-    SmartDashboard.putNumber("Gyro kF", gyroPIDF[3]);
+    SmartDashboard.putNumber("Gyro kP", gyroPIDF.vkP);
+    SmartDashboard.putNumber("Gyro kI", gyroPIDF.vkI);
+    SmartDashboard.putNumber("Gyro kD", gyroPIDF.vkD);
+    SmartDashboard.putNumber("Gyro kF", gyroPIDF.vkF);
 
     driveJoy = new Joystick(RobotMap.DriveJoy);
     opJoy = new Joystick(RobotMap.OpJoy);
 
-    //m_chooser.setDefaultOption("Default Auto", new Autonomous());
+    // m_chooser.setDefaultOption("Default Auto", new Autonomous());
     m_chooser.setDefaultOption("Vision Auto Align", new VisionAutoAlign());
     m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
     m_chooser.addOption("Gyro Test", new GyroTest());
@@ -252,29 +263,29 @@ public class Robot extends TimedRobot {
     }
   }
 
- class VisionTurnOutput implements PIDOutput {
+  class VisionTurnOutput implements PIDOutput {
 
     @Override
     public void pidWrite(double output) {
       Robot.visionTurnValue = output;
     }
-}
-
-class VisionStrafeOutput implements PIDOutput {
-
-  @Override
-  public void pidWrite(double output) {
-    Robot.visionStrafeValue = output;
   }
-}
 
- class GyroPIDOutput implements PIDOutput {
+  class VisionStrafeOutput implements PIDOutput {
 
-  @Override
-  public void pidWrite(double output) {
-    Robot.gyroPIDTurn = output;
+    @Override
+    public void pidWrite(double output) {
+      Robot.visionStrafeValue = output;
+    }
   }
-}
+
+  class GyroPIDOutput implements PIDOutput {
+
+    @Override
+    public void pidWrite(double output) {
+      Robot.gyroPIDTurn = output;
+    }
+  }
 
   @Override
   public void teleopInit() {
