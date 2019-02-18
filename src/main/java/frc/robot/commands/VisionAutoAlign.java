@@ -10,6 +10,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
+import frc.robot.subsystems.Lidar2903.LidarPosition;
 
 /**
  * Command that auto-aligns the robot to the vision target (Using only vision sensing!)
@@ -58,7 +59,7 @@ public class VisionAutoAlign extends Command {
     Robot.visionStrafeController.setPID(skP, skI, skD, skF);
 
     double ta = Robot.limelightSubsystem.getTA();
-    double lidar = Robot.lidarSubsystem.getDistance();
+    double lidar = Robot.lidarSubsystem.getDistance(LidarPosition.Center);
 
     if (Robot.limelightSubsystem.getTV() != 1) {
         forward = 0;
@@ -70,7 +71,7 @@ public class VisionAutoAlign extends Command {
         turn = -Robot.visionTurnValue;
     }
 
-    if (lidar <= maxLidar && Robot.lidarSubsystem.getStatus() == 0)
+    if (lidar <= maxLidar && Robot.lidarSubsystem.getStatus(LidarPosition.Center) == 0)
         forward = -percentToTarget(lidar, maxLidar) / 2;
 
     if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))

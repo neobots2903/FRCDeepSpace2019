@@ -10,6 +10,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
+import frc.robot.subsystems.Lidar2903.LidarPosition;
 
 /**
  * Super duper TeleOp command
@@ -33,8 +34,16 @@ public class TeleOp extends Command {
     double forward = -Robot.driveJoy.getRawAxis(1);
     double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
-    SmartDashboard.putNumber("Distance(mm)", Robot.lidarSubsystem.getDistance());
-    SmartDashboard.putNumber("Lidar Status", Robot.lidarSubsystem.getStatus());
+
+    SmartDashboard.putNumber("Left Distance(mm)", Robot.lidarSubsystem.getDistance(LidarPosition.Left));
+    SmartDashboard.putNumber("Left Lidar Status", Robot.lidarSubsystem.getStatus(LidarPosition.Left));
+    
+    SmartDashboard.putNumber("Center Distance(mm)", Robot.lidarSubsystem.getDistance(LidarPosition.Center));
+    SmartDashboard.putNumber("Center Lidar Status", Robot.lidarSubsystem.getStatus(LidarPosition.Center));
+    
+    SmartDashboard.putNumber("Right Distance(mm)", Robot.lidarSubsystem.getDistance(LidarPosition.Right));
+    SmartDashboard.putNumber("Right Lidar Status", Robot.lidarSubsystem.getStatus(LidarPosition.Right));
+    
     SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
 

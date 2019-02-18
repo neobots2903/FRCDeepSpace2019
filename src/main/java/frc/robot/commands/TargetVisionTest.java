@@ -10,6 +10,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
+import frc.robot.subsystems.Lidar2903.LidarPosition;
 
 /**
  * Old Target Vision Test. RUN AT YOUR OWN RISK!!
@@ -60,9 +61,9 @@ public class TargetVisionTest extends Command {
     turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionTurnValue;
 
     if (!SmartDashboard.getBoolean("Target Vision: Turn Only", true) && turn < 0.05) {
-      if (Robot.lidarSubsystem.getStatus() == 0)
-      forward = (Math.abs(Robot.lidarSubsystem.getDistance() - targetDistance) < distanceError) ?
-      0 : percentToTarget(Robot.lidarSubsystem.getDistance(),targetDistance);
+      if (Robot.lidarSubsystem.getStatus(LidarPosition.Center) == 0)
+      forward = (Math.abs(Robot.lidarSubsystem.getDistance(LidarPosition.Center) - targetDistance) < distanceError) ?
+      0 : percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Center),targetDistance);
       else
       forward = (Math.abs(ta) > maxTA) ? 0 : percentToTarget(ta,maxTA);
       
@@ -79,8 +80,6 @@ public class TargetVisionTest extends Command {
     SmartDashboard.putNumber("Turn speed", turn);
     SmartDashboard.putNumber("Forward speed", forward);
     SmartDashboard.putNumber("Strafe speed", side);
-    SmartDashboard.putNumber("Distance(mm)", Robot.lidarSubsystem.getDistance());
-    SmartDashboard.putNumber("Lidar Status", Robot.lidarSubsystem.getStatus());
     SmartDashboard.putNumber("Ta", ta);
     SmartDashboard.putNumber("Tx", tx);
   }

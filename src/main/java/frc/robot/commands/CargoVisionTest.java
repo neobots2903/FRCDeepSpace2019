@@ -11,6 +11,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
+import frc.robot.subsystems.Lidar2903.LidarPosition;
 
 /**
  * Follows cargo like a dog :P (Probably dangerous right now, so  C A R E F U L)
@@ -47,10 +48,10 @@ public class CargoVisionTest extends Command {
     double ta = Robot.limelightSubsystem.getTA();
     turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionStrafeValue;
 
-    if (tv != 0 && Robot.lidarSubsystem.getDistance() > 300)
+    if (tv != 0 && Robot.lidarSubsystem.getDistance(LidarPosition.Center) > 300)
       forward = (ta < 6.5) ? -percentToTarget(ta, 6.5)/3 : 0;
-    else if (Robot.lidarSubsystem.getDistance() <= 300)
-      forward = percentToTarget(Robot.lidarSubsystem.getDistance(), 300)/2;
+    else if (Robot.lidarSubsystem.getDistance(LidarPosition.Center) <= 300)
+      forward = percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Center), 300)/2;
     else
       forward = 0;
 
