@@ -29,10 +29,10 @@ public class GyroTest extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double kP = SmartDashboard.getNumber("kP",Robot.kP);
-    double kI = SmartDashboard.getNumber("kI",Robot.kI);
-    double kD = SmartDashboard.getNumber("kD",Robot.kD);
-    double kF = SmartDashboard.getNumber("kF",Robot.kF);
+    double kP = SmartDashboard.getNumber("Gyro kP",Robot.gyroPIDF[0]);
+    double kI = SmartDashboard.getNumber("Gyro kI",Robot.gyroPIDF[1]);
+    double kD = SmartDashboard.getNumber("Gyro kD",Robot.gyroPIDF[2]);
+    double kF = SmartDashboard.getNumber("Gyro kF",Robot.gyroPIDF[3]);
     Robot.gyroController.setPID(kP, kI, kD, kF);
 
     boolean rotateToAngle = false;

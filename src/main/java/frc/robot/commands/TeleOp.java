@@ -24,12 +24,13 @@ public class TeleOp extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
+    Robot.limelightSubsystem.setTargetMode();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double forward = Robot.driveJoy.getRawAxis(1);
+    double forward = -Robot.driveJoy.getRawAxis(1);
     double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
     SmartDashboard.putNumber("Distance(mm)", Robot.lidarSubsystem.getDistance());
@@ -44,6 +45,10 @@ public class TeleOp extends Command {
     */
 
     Robot.driveSubsystem.arcadeDrive(forward, side, turn);
+
+    Robot.limelightSubsystem.getTA();
+    Robot.limelightSubsystem.getTX();
+    Robot.limelightSubsystem.getTS();
   }
 
   // Make this return true when this Command no longer needs to run execute()

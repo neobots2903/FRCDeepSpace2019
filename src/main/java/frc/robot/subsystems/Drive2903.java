@@ -10,6 +10,8 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.command.Subsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 /**
@@ -24,6 +26,8 @@ public class Drive2903 extends Subsystem {
 
   static double maxOutput = 1; //Reduce if robot is drawing too much power
   static double speedScale = 1;
+  static double lastGyroAngle = 0;
+  static boolean withGyro = false;
 
   @Override
   public void initDefaultCommand() {
@@ -73,11 +77,26 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 */
 
 public void arcadeDrive(double forward, double side, double turn) {
-  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + side)));
-  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward - side)));
+  double f_turn = 0;
+  if (Math.abs(turn) <= 0.07) {
+    if(!withGyro) lastGyroAngle = Robot.navXSubsystem.turnAngle();
+    withGyro = true;
+    Robot.gyroController.setSetpoint(lastGyroAngle);
+    Robot.gyroController.enable();
+    f_turn = Robot.gyroPIDTurn;
+    SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
+  } else {
+    withGyro = false;
+    lastGyroAngle = Robot.navXSubsystem.turnAngle();
+    Robot.gyroController.disable();
+    f_turn = turn;
+  }
+  
+  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn - forward + side)));
+  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn - forward - side)));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + side))) ;
-  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward - side)));
+  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn + forward + side))) ;
+  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn + forward - side)));
 }
 
   public void arcadeDrive(double forward, double turn) {

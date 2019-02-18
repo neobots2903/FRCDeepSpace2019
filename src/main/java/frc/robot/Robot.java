@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.PIDSource;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
@@ -39,9 +41,14 @@ public class Robot extends TimedRobot {
   public static NavX2903 navXSubsystem;
 
   public static PIDController gyroController;
-  public static PIDController visionController;
+  public static PIDController visionTurnController;
+  public static PIDController visionStrafeController;
 
-  public static PIDOutput visionOutput;
+  public static PIDSource visionTurnSource;
+  public static PIDSource visionStrafeSource;
+
+  public static PIDOutput visionTurnOutput;
+  public static PIDOutput visionStrafeOutput;
   public static PIDOutput gyroOutput;
 
   public static LineSensor2903 lineSubsystem;
@@ -53,19 +60,15 @@ public class Robot extends TimedRobot {
   public static Joystick driveJoy;
   public static Joystick opJoy;
 
-  public static final double vKP = 0.06;
-  public static final double vKI = 0;
-  public static final double vKD = 0;
-  public static final double vKF = 0;
-  
-  public static final double kP = 0.06;
-  public static final double kI = 0;
-  public static final double kD = 0;
-  public static final double kF = 0;
+  public static final double[] visionTurnPIDF = new double[] {0.5, 0, 0, 0};
+  public static final double[] visionStrafePIDF = new double[] {0.1, 0, 0, 0};
+  public static final double[] gyroPIDF = new double[] {0.08, 0, 0, 0};
+
   public static final double kToleranceDegrees = 1.0;
 
   public static double gyroPIDTurn = 0;
-  public static double visionPIDTurn = 0;
+  public static double visionTurnValue = 0;
+  public static double visionStrafeValue = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -85,7 +88,11 @@ public class Robot extends TimedRobot {
     lineSubsystem = new LineSensor2903();
     limelightSubsystem = new Limelight2903();
 
-    visionOutput = new VisionPIDOutput();
+    visionTurnSource = new VisionTurnSource();
+    visionStrafeSource = new VisionStrafeSource();
+
+    visionTurnOutput = new VisionTurnOutput();
+    visionStrafeOutput = new VisionStrafeOutput();
     gyroOutput = new GyroPIDOutput();
 
     driveSubsystem.init();
@@ -98,29 +105,50 @@ public class Robot extends TimedRobot {
       DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
     }
    
-    visionController = new PIDController(vKP, vKI, vKD, vKF, limelightSubsystem, visionOutput);
-    visionController.setInputRange(-27f, 27f);
-    visionController.setOutputRange(-1.0, 1.0);
-    visionController.setAbsoluteTolerance(kToleranceDegrees);
-    visionController.setContinuous(true);
+    visionTurnController = new PIDController(
+      visionTurnPIDF[0], visionTurnPIDF[1], visionTurnPIDF[2], visionTurnPIDF[3],
+      visionTurnSource, visionTurnOutput);
+    visionTurnController.setInputRange(-45f, 45f);
+    visionTurnController.setOutputRange(-1.0, 1.0);
+    visionTurnController.setAbsoluteTolerance(kToleranceDegrees);
+    visionTurnController.setContinuous(false);
 
-    gyroController = new PIDController(kP,kI,kD,kF,ahrs,gyroOutput);
+    visionStrafeController = new PIDController(
+      visionStrafePIDF[0], visionStrafePIDF[1], visionStrafePIDF[2], visionStrafePIDF[3],
+      visionStrafeSource, visionStrafeOutput);
+    visionTurnController.setInputRange(-27f, 27f);
+    visionTurnController.setOutputRange(-1.0, 1.0);
+    visionTurnController.setAbsoluteTolerance(kToleranceDegrees);
+    visionTurnController.setContinuous(false);
+
+    gyroController = new PIDController(gyroPIDF[0], gyroPIDF[1], gyroPIDF[2], gyroPIDF[3],
+    ahrs,gyroOutput);
     gyroController.setInputRange(-180.0f, 180.0f);
     gyroController.setOutputRange(-1.0, 1.0);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(true);
 
-    SmartDashboard.putNumber("kP",kP);
-    SmartDashboard.putNumber("kI",kI);
-    SmartDashboard.putNumber("kD",kD);
-    SmartDashboard.putNumber("kF",kF);
+    SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF[0]);
+    SmartDashboard.putNumber("VisTurn kI", visionTurnPIDF[1]);
+    SmartDashboard.putNumber("VisTurn kD", visionTurnPIDF[2]);
+    SmartDashboard.putNumber("VisTurn kF", visionTurnPIDF[3]);
+
+    SmartDashboard.putNumber("VisStrf kP", visionStrafePIDF[0]);
+    SmartDashboard.putNumber("VisStrf kI", visionStrafePIDF[1]);
+    SmartDashboard.putNumber("VisStrf kD", visionStrafePIDF[2]);
+    SmartDashboard.putNumber("VisStrf kF", visionStrafePIDF[3]);
+
+    SmartDashboard.putNumber("Gyro kP", gyroPIDF[0]);
+    SmartDashboard.putNumber("Gyro kI", gyroPIDF[1]);
+    SmartDashboard.putNumber("Gyro kD", gyroPIDF[2]);
+    SmartDashboard.putNumber("Gyro kF", gyroPIDF[3]);
 
     driveJoy = new Joystick(RobotMap.DriveJoy);
     opJoy = new Joystick(RobotMap.OpJoy);
 
-    m_chooser.setDefaultOption("Default Auto", new Autonomous());
+    //m_chooser.setDefaultOption("Default Auto", new Autonomous());
+    m_chooser.setDefaultOption("Vision Auto Align", new VisionAutoAlign());
     m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
-    m_chooser.addOption("Target Vision Test", new TargetVisionTest());
     m_chooser.addOption("Gyro Test", new GyroTest());
     m_chooser.addOption("Line Follower", new LineFollower());
     SmartDashboard.putData("Auto mode", m_chooser);
@@ -190,12 +218,54 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
   }
 
- class VisionPIDOutput implements PIDOutput {
+  class VisionTurnSource implements PIDSource {
+
+    @Override
+    public void setPIDSourceType(PIDSourceType pidSource) {
+    }
+
+    @Override
+    public PIDSourceType getPIDSourceType() {
+      return PIDSourceType.kDisplacement;
+    }
+
+    @Override
+    public double pidGet() {
+      return limelightSubsystem.getTS();
+    }
+  }
+
+  class VisionStrafeSource implements PIDSource {
+
+    @Override
+    public void setPIDSourceType(PIDSourceType pidSource) {
+    }
+
+    @Override
+    public PIDSourceType getPIDSourceType() {
+      return PIDSourceType.kDisplacement;
+    }
+
+    @Override
+    public double pidGet() {
+      return limelightSubsystem.getTX();
+    }
+  }
+
+ class VisionTurnOutput implements PIDOutput {
 
     @Override
     public void pidWrite(double output) {
-      Robot.visionPIDTurn = output;
+      Robot.visionTurnValue = output;
     }
+}
+
+class VisionStrafeOutput implements PIDOutput {
+
+  @Override
+  public void pidWrite(double output) {
+    Robot.visionStrafeValue = output;
+  }
 }
 
  class GyroPIDOutput implements PIDOutput {

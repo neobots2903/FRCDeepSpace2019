@@ -12,23 +12,25 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.command.Subsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 
 /**
  * An example subsystem.  You can replace me with your own Subsystem.
  */
-public class Limelight2903 extends Subsystem implements PIDSource {
+public class Limelight2903 extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   NetworkTable table;
   public NetworkTableEntry tx; //Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees)
   public NetworkTableEntry ta; //Target Area (0% of image to 100% of image)
   public NetworkTableEntry tv; //Whether the limelight has any valid targets (0 or 1)
+  public NetworkTableEntry ts; //Skew or rotation (-90 degrees to 0 degrees)
 
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.
-    // setDefaultCommand(new MySpecialCommand());
+    // setDefaultCommand(new MySpecialCommand()); 
   }
 
   public void init() {
@@ -36,6 +38,7 @@ public class Limelight2903 extends Subsystem implements PIDSource {
     tx = table.getEntry("tx");
     ta = table.getEntry("ta");
     tv = table.getEntry("tv");
+    ts = table.getEntry("ts");
     setLight(false);
   }
 
@@ -53,33 +56,36 @@ public class Limelight2903 extends Subsystem implements PIDSource {
     table.getEntry("ledMode").setNumber((state) ? 3 : 1); // forces LED off
   }
 
-  double getEntryValue(NetworkTableEntry entry) {
-    return entry.getNumber(0).doubleValue();
+  double getEntryDouble(NetworkTableEntry entry) {
+    return entry.getDouble(0);
+  }
+
+  double[] getEntryArray(NetworkTableEntry entry) {
+    return entry.getDoubleArray(new double[7]);
+  }
+  
+  public double getTS() {
+    double value = getEntryDouble(ts);
+    if (value < -45) value = 90 + value;
+    SmartDashboard.putNumber("TS", value);
+    return value;
   }
 
   public double getTX(){
-    return getEntryValue(tx);
+    double value = getEntryDouble(tx);
+    SmartDashboard.putNumber("TX", value);
+    return value;
   }
 
     public double getTV(){
-    return getEntryValue(tv);
+      double value = getEntryDouble(tv);
+      SmartDashboard.putNumber("TV", value);
+      return value;
   }
 
   public double getTA(){
-    return getEntryValue(ta);
+    double value = getEntryDouble(ta);
+    SmartDashboard.putNumber("TA", value);
+    return value;
   }
-
-  @Override
-  public void setPIDSourceType(PIDSourceType pidSource) {
-  }
-
-  @Override
-  public PIDSourceType getPIDSourceType() {
-    return PIDSourceType.kDisplacement;
-  }
-
-  @Override
-  public double pidGet() {
-    return getTX();
-}
 }

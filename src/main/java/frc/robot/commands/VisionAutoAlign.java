@@ -7,19 +7,21 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
 /**
- * Follows cargo like a dog :P (Probably dangerous right now, so  C A R E F U L)
+ * Command that auto-aligns the robot to the vision target (Using only vision sensing!)
  */
-public class CargoVisionTest extends Command {
-  double turn = 0;
+public class VisionAutoAlign extends Command {
+  double maxTA = 3.4;
+  double maxLidar = 300;
   double forward = 0;
+  double side = 0;
+  double turn = 0;
 
-  public CargoVisionTest() {
+  public VisionAutoAlign() {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.driveSubsystem);
   }
@@ -27,44 +29,61 @@ public class CargoVisionTest extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    Robot.limelightSubsystem.setCargoMode();
+    Robot.limelightSubsystem.setTargetMode();
+
     Robot.visionTurnController.setSetpoint(0);
+    Robot.visionStrafeController.setSetpoint(0);
+
+    if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))
+      SmartDashboard.putBoolean("Target Vision: Turn Only", true);
+
     Robot.visionTurnController.enable();
+    Robot.visionStrafeController.enable();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-     
+
+    double tkP = SmartDashboard.getNumber("VisTurn kP", Robot.visionTurnPIDF[0]);
+    double tkI = SmartDashboard.getNumber("VisTurn kI", Robot.visionTurnPIDF[1]);
+    double tkD = SmartDashboard.getNumber("VisTurn kD", Robot.visionTurnPIDF[2]);
+    double tkF = SmartDashboard.getNumber("VisTurn kF", Robot.visionTurnPIDF[3]);
+    Robot.visionTurnController.setPID(tkP, tkI, tkD, tkF);
+
     double skP = SmartDashboard.getNumber("VisStrf kP", Robot.visionStrafePIDF[0]);
     double skI = SmartDashboard.getNumber("VisStrf kI", Robot.visionStrafePIDF[1]);
     double skD = SmartDashboard.getNumber("VisStrf kD", Robot.visionStrafePIDF[2]);
     double skF = SmartDashboard.getNumber("VisStrf kF", Robot.visionStrafePIDF[3]);
     Robot.visionStrafeController.setPID(skP, skI, skD, skF);
 
-    double tv = Robot.limelightSubsystem.getTV();
-    double tx = Robot.limelightSubsystem.getTX();
     double ta = Robot.limelightSubsystem.getTA();
-    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionStrafeValue;
+    double lidar = Robot.lidarSubsystem.getDistance();
 
-    if (tv != 0 && Robot.lidarSubsystem.getDistance() > 300)
-      forward = (ta < 6.5) ? -percentToTarget(ta, 6.5)/3 : 0;
-    else if (Robot.lidarSubsystem.getDistance() <= 300)
-      forward = percentToTarget(Robot.lidarSubsystem.getDistance(), 300)/2;
+    if (Robot.limelightSubsystem.getTV() != 1) {
+        forward = 0;
+        side = 0;
+        turn = 0;
+    } else {
+        forward = percentToTarget(ta, maxTA) * 0.4;
+        side = Robot.visionStrafeValue * 0.75;
+        turn = -Robot.visionTurnValue;
+    }
+
+    if (lidar <= maxLidar && Robot.lidarSubsystem.getStatus() == 0)
+        forward = -percentToTarget(lidar, maxLidar) / 2;
+
+    if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))
+        Robot.driveSubsystem.arcadeDrive(0, side, turn);
     else
-      forward = 0;
+        Robot.driveSubsystem.arcadeDrive(forward, side, turn);
 
-  Robot.driveSubsystem.arcadeDrive(forward,turn);
-
-  SmartDashboard.putNumber("Turn speed", turn);
-  SmartDashboard.putNumber("Tx", tx);
-  SmartDashboard.putNumber("Ta", ta);
+    SmartDashboard.putNumber("Turn speed", turn);
+    SmartDashboard.putNumber("Forward speed", forward);
+    SmartDashboard.putNumber("Strafe speed", side);
   }
 
-  double getEntryValue(NetworkTableEntry entry) {
-    return entry.getNumber(0).doubleValue();
-  }
-
+  //Returns a value from -1 to 1, depending on distance to target
   double percentToTarget(double value, double target) {
     double sign = (value < 0) ? -1 : 1;
     return ((target - Math.abs(value)) / target) * sign;
@@ -73,17 +92,22 @@ public class CargoVisionTest extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return false;
+      if (Robot.limelightSubsystem.getTV() != 1) return true;
+      else return false;
   }
 
   // Called once after isFinished returns true
   @Override
   protected void end() {
+    Robot.visionTurnController.disable();
+    Robot.visionStrafeController.disable();
   }
 
   // Called when another command which requires one or more of the same
   // subsystems is scheduled to run
   @Override
   protected void interrupted() {
+    Robot.visionTurnController.disable();
+    Robot.visionStrafeController.disable();
   }
 }

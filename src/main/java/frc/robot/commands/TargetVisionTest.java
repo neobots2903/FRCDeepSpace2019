@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
 /**
- * An example command.  You can replace me with your own command.
+ * Old Target Vision Test. RUN AT YOUR OWN RISK!!
  */
 public class TargetVisionTest extends Command {
   double lastStrafe = 0;
@@ -36,38 +36,28 @@ public class TargetVisionTest extends Command {
   @Override
   protected void initialize() {
     Robot.limelightSubsystem.setTargetMode();
-    Robot.visionController.setSetpoint(0);
-
-    if (SmartDashboard.getNumber("kP", 0) == 0 &&
-    SmartDashboard.getNumber("kI", 0) == 0 &&
-    SmartDashboard.getNumber("kD", 0) == 0 &&
-    SmartDashboard.getNumber("kF", 0) == 0) {
-      SmartDashboard.putNumber("kP", Robot.visionController.getP());
-      SmartDashboard.putNumber("kI", Robot.visionController.getI());
-      SmartDashboard.putNumber("kD", Robot.visionController.getD());
-      SmartDashboard.putNumber("kF", Robot.visionController.getF());
-    }
+    Robot.visionTurnController.setSetpoint(0);
 
     if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))
       SmartDashboard.putBoolean("Target Vision: Turn Only", true);
 
-    Robot.visionController.enable();
+    Robot.visionTurnController.enable();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
     
-    double kP = SmartDashboard.getNumber("kP",Robot.vKP);
-    double kI = SmartDashboard.getNumber("kI",Robot.vKI);
-    double kD = SmartDashboard.getNumber("kD",Robot.vKD);
-    double kF = SmartDashboard.getNumber("kF",Robot.vKF);
-    Robot.visionController.setPID(kP, kI, kD, kF);
+    //double kP = SmartDashboard.getNumber("kP",Robot.vKP);
+    //double kI = SmartDashboard.getNumber("kI",Robot.vKI);
+    //double kD = SmartDashboard.getNumber("kD",Robot.vKD);
+    //double kF = SmartDashboard.getNumber("kF",Robot.vKF);
+    //Robot.visionTurnController.setPID(kP, kI, kD, kF);
 
     double ta = Robot.limelightSubsystem.getTA();
     double tx = Robot.limelightSubsystem.getTX();
 
-    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionPIDTurn;
+    turn = (Math.abs(tx) <= Robot.kToleranceDegrees) ? 0 : -Robot.visionTurnValue;
 
     if (!SmartDashboard.getBoolean("Target Vision: Turn Only", true) && turn < 0.05) {
       if (Robot.lidarSubsystem.getStatus() == 0)
