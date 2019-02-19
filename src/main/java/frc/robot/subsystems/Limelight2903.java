@@ -9,28 +9,26 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.PIDSource;
-import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 
 /**
- * An example subsystem.  You can replace me with your own Subsystem.
+ * An example subsystem. You can replace me with your own Subsystem.
  */
 public class Limelight2903 extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
   NetworkTable table;
-  public NetworkTableEntry tx; //Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees)
-  public NetworkTableEntry ta; //Target Area (0% of image to 100% of image)
-  public NetworkTableEntry tv; //Whether the limelight has any valid targets (0 or 1)
-  public NetworkTableEntry ts; //Skew or rotation (-90 degrees to 0 degrees)
+  public NetworkTableEntry tx; // Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees)
+  public NetworkTableEntry ta; // Target Area (0% of image to 100% of image)
+  public NetworkTableEntry tv; // Whether the limelight has any valid targets (0 or 1)
+  public NetworkTableEntry ts; // Skew or rotation (-90 degrees to 0 degrees)
 
   @Override
   public void initDefaultCommand() {
     // Set the default command for a subsystem here.
-    // setDefaultCommand(new MySpecialCommand()); 
+    // setDefaultCommand(new MySpecialCommand());
   }
 
   public void init() {
@@ -63,7 +61,7 @@ public class Limelight2903 extends Subsystem {
   double[] getEntryArray(NetworkTableEntry entry) {
     return entry.getDoubleArray(new double[7]);
   }
-  
+
   public double getTS() {
     double value = getEntryDouble(ts);
     if (value < -45) value += 90;
@@ -71,19 +69,19 @@ public class Limelight2903 extends Subsystem {
     return value;
   }
 
-  public double getTX(){
+  public double getTX() {
     double value = getEntryDouble(tx);
     SmartDashboard.putNumber("TX", value);
     return value;
   }
 
-    public double getTV(){
-      double value = getEntryDouble(tv);
-      SmartDashboard.putNumber("TV", value);
-      return value;
+  public double getTV() {
+    double value = getEntryDouble(tv);
+    SmartDashboard.putNumber("TV", value);
+    return value;
   }
 
-  public double getTA(){
+  public double getTA() {
     double value = getEntryDouble(ta);
     SmartDashboard.putNumber("TA", value);
     return value;
