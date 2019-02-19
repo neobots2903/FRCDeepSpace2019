@@ -59,7 +59,9 @@ public class VisionAutoAlign extends Command {
     Robot.visionStrafeController.setPID(skP, skI, skD, skF);
 
     double ta = Robot.limelightSubsystem.getTA();
-    double lidar = Robot.lidarSubsystem.getDistance(LidarPosition.Center);
+    int centerLid = Robot.lidarSubsystem.getDistance(LidarPosition.Center);
+    int leftLid = Robot.lidarSubsystem.getDistance(LidarPosition.Left);
+    int rightLid = Robot.lidarSubsystem.getDistance(LidarPosition.Right);
 
     if (Robot.limelightSubsystem.getTV() != 1) {
         forward = 0;
@@ -71,14 +73,22 @@ public class VisionAutoAlign extends Command {
         turn = -Robot.visionTurnValue;
     }
 
-    if (lidar <= maxLidar && Robot.lidarSubsystem.getStatus(LidarPosition.Center) == 0)
-        forward = -percentToTarget(lidar, maxLidar) / 2;
+    if (Robot.lidarSubsystem.getStatus(LidarPosition.Left) == 0 && Robot.lidarSubsystem.getStatus(LidarPosition.Right) == 0) {
+      //yay dood
+      int turnError = leftLid - rightLid;
+      if (Math.abs(turnError) > 25) 
+        turn = turnError;
+        turn/=100;
+    }
+
+    if (centerLid <= maxLidar || leftLid <= maxLidar || rightLid <= maxLidar && Robot.lidarSubsystem.getStatus(LidarPosition.Center) == 0)
+        forward = -percentToTarget(centerLid, maxLidar) / 2;
 
     if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))
         Robot.driveSubsystem.arcadeDrive(0, side, turn);
     else
         Robot.driveSubsystem.arcadeDrive(forward, side, turn);
-
+    
     SmartDashboard.putNumber("Turn speed", turn);
     SmartDashboard.putNumber("Forward speed", forward);
     SmartDashboard.putNumber("Strafe speed", side);

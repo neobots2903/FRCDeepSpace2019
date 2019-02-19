@@ -66,7 +66,7 @@ public class Limelight2903 extends Subsystem {
   
   public double getTS() {
     double value = getEntryDouble(ts);
-    if (value < -45) value = 90 + value;
+    if (value < -45) value += 90;
     SmartDashboard.putNumber("TS", value);
     return value;
   }

@@ -27,10 +27,10 @@ public class RobotMap {
   public static int TBD = 0;
 
   //Talon SRX IDs
-  public static final int LeftFrontMotor = 33;
-  public static final int RightFrontMotor = 31;
-  public static final int LeftRearMotor = 34;
-  public static final int RightRearMotor = 32;
+  public static final int LeftFrontMotor = 37;
+  public static final int RightFrontMotor = 40;
+  public static final int LeftRearMotor = 38;
+  public static final int RightRearMotor = 31;
 
   //Controller #'s
   public static final int DriveJoy = 0;

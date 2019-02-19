@@ -9,6 +9,8 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
@@ -23,6 +25,7 @@ public class Drive2903 extends Subsystem {
   TalonSRX RightFrontMotor;
   TalonSRX LeftRearMotor;
   TalonSRX RightRearMotor;
+  Solenoid wheelToggler;
 
   static double maxOutput = 1; //Reduce if robot is drawing too much power
   static double speedScale = 1;
@@ -40,7 +43,7 @@ public class Drive2903 extends Subsystem {
     RightFrontMotor = new TalonSRX(RobotMap.RightFrontMotor);
     LeftRearMotor = new TalonSRX(RobotMap.LeftRearMotor);
     RightRearMotor = new TalonSRX(RobotMap.RightRearMotor);
-
+    wheelToggler = new Solenoid(RobotMap.TBD);
     
     LeftFrontMotor.configPeakOutputForward(maxOutput, 0);
     LeftFrontMotor.configPeakOutputReverse(-maxOutput, 0);
@@ -77,6 +80,7 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 */
 
 public void arcadeDrive(double forward, double side, double turn) {
+  
   double f_turn = 0;
   if (Math.abs(turn) <= 0.07) {
     if(!withGyro) lastGyroAngle = Robot.navXSubsystem.turnAngle();
@@ -88,6 +92,7 @@ public void arcadeDrive(double forward, double side, double turn) {
   } else {
     withGyro = false;
     lastGyroAngle = Robot.navXSubsystem.turnAngle();
+    SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
     Robot.gyroController.disable();
     f_turn = turn;
   }
@@ -101,6 +106,14 @@ public void arcadeDrive(double forward, double side, double turn) {
 
   public void arcadeDrive(double forward, double turn) {
     arcadeDrive(forward, 0, turn);
+  }
+
+  public void mecanumDown() {
+    wheelToggler.set(true);
+  }
+
+  public void tractionDown() {
+    wheelToggler.set(false);
   }
 
 }

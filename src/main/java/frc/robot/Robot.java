@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Lidar2903.LidarPosition;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
@@ -43,13 +44,16 @@ public class Robot extends TimedRobot {
   public static PIDController gyroController;
   public static PIDController visionTurnController;
   public static PIDController visionStrafeController;
+  public static PIDController LidarController;
 
   public static PIDSource visionTurnSource;
   public static PIDSource visionStrafeSource;
+  public static PIDSource LidarSource;
 
   public static PIDOutput visionTurnOutput;
   public static PIDOutput visionStrafeOutput;
   public static PIDOutput gyroOutput;
+  public static PIDOutput LidarOutput;
 
   public static LineSensor2903 lineSubsystem;
   public static Lidar2903 lidarSubsystem;
@@ -63,12 +67,14 @@ public class Robot extends TimedRobot {
   public static final double[] visionTurnPIDF = new double[] {0.5, 0, 0, 0};
   public static final double[] visionStrafePIDF = new double[] {0.1, 0, 0, 0};
   public static final double[] gyroPIDF = new double[] {0.08, 0, 0, 0};
+  public static final double[] LidarPIDF = new double[] {0.08, 0, 0, 0};
 
   public static final double kToleranceDegrees = 1.0;
 
   public static double gyroPIDTurn = 0;
   public static double visionTurnValue = 0;
   public static double visionStrafeValue = 0;
+  public static double lidarTurnValue = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -128,6 +134,13 @@ public class Robot extends TimedRobot {
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(true);
 
+    LidarController = new PIDController(LidarPIDF[0], LidarPIDF[1], LidarPIDF[2], LidarPIDF[3],
+    LidarSource,LidarOutput);
+    gyroController.setInputRange(-180.0f, 180.0f);
+    gyroController.setOutputRange(-1.0, 1.0);
+    gyroController.setAbsoluteTolerance(kToleranceDegrees);
+    gyroController.setContinuous(true);
+
     SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF[0]);
     SmartDashboard.putNumber("VisTurn kI", visionTurnPIDF[1]);
     SmartDashboard.putNumber("VisTurn kD", visionTurnPIDF[2]);
@@ -142,6 +155,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Gyro kI", gyroPIDF[1]);
     SmartDashboard.putNumber("Gyro kD", gyroPIDF[2]);
     SmartDashboard.putNumber("Gyro kF", gyroPIDF[3]);
+
+    SmartDashboard.putNumber("Lidar kP", LidarPIDF[0]);
+    SmartDashboard.putNumber("Lidar kI", LidarPIDF[1]);
+    SmartDashboard.putNumber("Lidar kD", LidarPIDF[2]);
+    SmartDashboard.putNumber("Lidar kF", LidarPIDF[3]);
 
     driveJoy = new Joystick(RobotMap.DriveJoy);
     opJoy = new Joystick(RobotMap.OpJoy);
@@ -252,6 +270,23 @@ public class Robot extends TimedRobot {
     }
   }
 
+  class LidarSource implements PIDSource {
+
+    @Override
+    public void setPIDSourceType(PIDSourceType pidSource) {
+    }
+
+    @Override
+    public PIDSourceType getPIDSourceType() {
+      return PIDSourceType.kDisplacement;
+    }
+
+    @Override
+    public double pidGet() {
+      return lidarSubsystem.getDistance(LidarPosition.Left) - lidarSubsystem.getDistance(LidarPosition.Right);
+    }
+  }
+
  class VisionTurnOutput implements PIDOutput {
 
     @Override
@@ -273,6 +308,14 @@ class VisionStrafeOutput implements PIDOutput {
   @Override
   public void pidWrite(double output) {
     Robot.gyroPIDTurn = output;
+  }
+}
+
+class LidarPIDOutput implements PIDOutput {
+
+  @Override
+  public void pidWrite(double output) {
+    Robot.lidarTurnValue = output;
   }
 }
 

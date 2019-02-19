@@ -35,6 +35,8 @@ public class TeleOp extends Command {
     double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
 
+    SmartDashboard.putNumber("Turn Speed", turn);
+
     SmartDashboard.putNumber("Left Distance(mm)", Robot.lidarSubsystem.getDistance(LidarPosition.Left));
     SmartDashboard.putNumber("Left Lidar Status", Robot.lidarSubsystem.getStatus(LidarPosition.Left));
     
