@@ -33,9 +33,6 @@ public class VisionAutoAlign extends Command {
   protected void initialize() {
     Robot.limelightSubsystem.setTargetMode();
 
-    Robot.visionTurnController.setSetpoint(0);
-    Robot.visionStrafeController.setSetpoint(0);
-
     if (SmartDashboard.getBoolean("Target Vision: Turn Only", true))
       SmartDashboard.putBoolean("Target Vision: Turn Only", true);
 

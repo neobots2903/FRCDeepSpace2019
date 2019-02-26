@@ -44,20 +44,25 @@ public class Robot extends TimedRobot {
   public static PIDController gyroController;
   public static PIDController visionTurnController;
   public static PIDController visionStrafeController;
-  public static PIDController LidarController;
+  public static PIDController dartController;
+  public static PIDController lidarController;
 
   public static PIDSource visionTurnSource;
   public static PIDSource visionStrafeSource;
-  public static PIDSource LidarSource;
+  public static PIDSource dartSource;
+  public static PIDSource lidarSource;
 
   public static PIDOutput visionTurnOutput;
   public static PIDOutput visionStrafeOutput;
   public static PIDOutput gyroOutput;
-  public static PIDOutput LidarOutput;
+  public static PIDOutput dartOutput;
+  public static PIDOutput lidarOutput;
 
   public static LineSensor2903 lineSubsystem;
   public static Lidar2903 lidarSubsystem;
   public static Limelight2903 limelightSubsystem;
+  public static PickUpArm2903 pickUpArmSubsystem;
+  public static Ramp2903 rampSubsystem;
 
   public static AHRS ahrs;
 
@@ -80,6 +85,7 @@ public class Robot extends TimedRobot {
 
   public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
   public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
+  public static PIDF dartPIDF = new PIDF(0.06, 0, 0, 0);
   public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
   public static PIDF lidarPIDF = new PIDF(0.08, 0, 0, 0);
 
@@ -89,6 +95,7 @@ public class Robot extends TimedRobot {
   public static double visionTurnValue = 0;
   public static double visionStrafeValue = 0;
   public static double lidarTurnValue = 0;
+  public static double dartValue = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -107,13 +114,19 @@ public class Robot extends TimedRobot {
     lidarSubsystem = new Lidar2903();
     lineSubsystem = new LineSensor2903();
     limelightSubsystem = new Limelight2903();
+    pickUpArmSubsystem = new PickUpArm2903();
+    rampSubsystem = new Ramp2903();
 
     visionTurnSource = new VisionTurnSource();
     visionStrafeSource = new VisionStrafeSource();
+    dartSource = new DartSource();
+    lidarSource = new LidarSource();
 
     visionTurnOutput = new VisionTurnOutput();
     visionStrafeOutput = new VisionStrafeOutput();
     gyroOutput = new GyroPIDOutput();
+    dartOutput = new DartOutput();
+    lidarOutput = new LidarPIDOutput();
 
     driveSubsystem.init();
     lineSubsystem.init();
@@ -145,12 +158,24 @@ public class Robot extends TimedRobot {
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(true);
 
-    LidarController = new PIDController(lidarPIDF.vkP, lidarPIDF.vkI, lidarPIDF.vkD,lidarPIDF.vkF,
-    LidarSource,LidarOutput);
+    dartController = new PIDController(dartPIDF.vkP, dartPIDF.vkI, dartPIDF.vkD,dartPIDF.vkF,
+    dartSource,dartOutput);
     gyroController.setInputRange(-180.0f, 180.0f);
     gyroController.setOutputRange(-1.0, 1.0);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
-    gyroController.setContinuous(true);
+    gyroController.setContinuous(false);
+
+    lidarController = new PIDController(lidarPIDF.vkP, lidarPIDF.vkI, lidarPIDF.vkD,lidarPIDF.vkF,
+    lidarSource,lidarOutput);
+    gyroController.setInputRange(-180.0f, 180.0f);
+    gyroController.setOutputRange(-1.0, 1.0);
+    gyroController.setAbsoluteTolerance(kToleranceDegrees);
+    gyroController.setContinuous(false);
+
+    visionTurnController.setSetpoint(0);
+    visionStrafeController.setSetpoint(0);
+    dartController.setSetpoint(pickUpArmSubsystem.getElbow());
+    //lidarController.setSetpoint(0);
 
     SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF.vkP);
     SmartDashboard.putNumber("VisTurn kI", visionTurnPIDF.vkI);
@@ -281,6 +306,23 @@ public class Robot extends TimedRobot {
     }
   }
 
+  class DartSource implements PIDSource {
+
+    @Override
+    public void setPIDSourceType(PIDSourceType pidSource) {
+    }
+
+    @Override
+    public PIDSourceType getPIDSourceType() {
+      return PIDSourceType.kDisplacement;
+    }
+
+    @Override
+    public double pidGet() {
+      return pickUpArmSubsystem.getElbow();
+    }
+  }
+
   class LidarSource implements PIDSource {
 
     @Override
@@ -319,6 +361,14 @@ public class Robot extends TimedRobot {
     @Override
     public void pidWrite(double output) {
       Robot.gyroPIDTurn = output;
+    }
+  }
+
+  class DartOutput implements PIDOutput {
+
+    @Override
+    public void pidWrite(double output) {
+      Robot.dartValue = output;
     }
   }
 

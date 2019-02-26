@@ -13,7 +13,9 @@ public class Lidar2903 {
   int rightStatus = 0;
 
   public Lidar2903() {
-    arduino = new SerialPort(9600, SerialPort.Port.kUSB);
+    try {
+      arduino = new SerialPort(9600, SerialPort.Port.kUSB);
+    } catch (Exception ex) { }
   }
 
   public void updateData() {

@@ -8,7 +8,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
-import frc.robot.RobotMap;
+//import frc.robot.RobotMap;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 
@@ -31,11 +31,13 @@ public class LineSensor2903 extends Subsystem {
   }
 
   public void init() {
+    /*
     farLeftLine = new DigitalInput(RobotMap.LineSensorFarLeft);
     leftLine = new DigitalInput(RobotMap.LineSensorLeft);
     centerLine = new DigitalInput(RobotMap.LineSensorCenter);
     rightLine = new DigitalInput(RobotMap.LineSensorRight);
     farRightLine = new DigitalInput(RobotMap.LineSensorFarRight);
+    */
   }
 
   public double MoveToCenter() {

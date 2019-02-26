@@ -17,6 +17,13 @@ import frc.robot.subsystems.Lidar2903.LidarPosition;
  */
 public class TeleOp extends Command {
 
+  boolean lock1 = false;
+  boolean lock2 = false;
+  boolean lock3 = false;
+  boolean lock4 = false;
+  boolean lock5 = false;
+  boolean lock6 = false;
+
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.driveSubsystem);
@@ -49,6 +56,11 @@ public class TeleOp extends Command {
     SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
 
+    //SmartDashboard.putNumber("Right Ramp Servo", Robot.rampSubsystem.rightRamp.get());
+    //SmartDashboard.putNumber("Left Ramp Servo", Robot.rampSubsystem.leftRamp.get());
+    //SmartDashboard.putNumber("Small Ramp Servo", Robot.rampSubsystem.smallRamp.get());
+ 
+
     /*
     SmartDashboard.putBoolean("Line left?", Robot.lineSubsystem.leftDetected());
     SmartDashboard.putBoolean("Line center?", Robot.lineSubsystem.centerDetected());
@@ -56,6 +68,62 @@ public class TeleOp extends Command {
     */
 
     Robot.driveSubsystem.arcadeDrive(forward, side, turn);
+
+    if (Robot.driveJoy.getRawButton(3)) {
+      if (!lock1)
+        Robot.rampSubsystem.liftRamp();
+      lock1 = true;
+    } else {
+      lock1 = false;
+    } 
+
+    if (Robot.driveJoy.getRawButton(1)) {
+      if (!lock2)
+        Robot.rampSubsystem.lowerRamp();
+        lock2 = true;
+    } else {
+      lock2 = false;
+    }
+
+    if (Robot.driveJoy.getRawButton(4)) {
+      if (!lock3)
+        Robot.driveSubsystem.mecanumDown();
+      lock3 = true;
+    } else {
+      lock3 = false;
+    } 
+
+    if (Robot.driveJoy.getRawButton(2)) {
+      if (!lock4)
+        Robot.driveSubsystem.tractionDown();
+        lock4 = true;
+    } else {
+      lock4 = false;
+    }
+
+    if (Robot.driveJoy.getRawButton(7)) {
+      if (!lock5)
+        Robot.pickUpArmSubsystem.punch();
+        lock5 = true;
+    } else {
+      lock5 = false;
+    }
+
+    if (Robot.driveJoy.getPOV() == 270) {
+      Robot.pickUpArmSubsystem.WristSetHa(0.50);
+    } else if (Robot.driveJoy.getPOV() == 90) {
+      Robot.pickUpArmSubsystem.WristSetHa(-0.40);
+    } else {
+      Robot.pickUpArmSubsystem.WristSetHa(0.0);
+    }
+
+    if (Robot.driveJoy.getPOV() == 180) {
+      Robot.pickUpArmSubsystem.ElbowSetHa(-0.45);
+    } else if (Robot.driveJoy.getPOV() == 0) {
+      Robot.pickUpArmSubsystem.ElbowSetHa(0.75);
+    } else {
+      Robot.pickUpArmSubsystem.ElbowSetHa(0.0);
+    }
 
     Robot.limelightSubsystem.getTA();
     Robot.limelightSubsystem.getTX();

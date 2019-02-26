@@ -25,10 +25,12 @@ public class Drive2903 extends Subsystem {
   TalonSRX RightFrontMotor;
   TalonSRX LeftRearMotor;
   TalonSRX RightRearMotor;
-  Solenoid wheelToggler;
+  Solenoid driveLower;
+  Solenoid driveLift;
 
   static double maxOutput = 1; //Reduce if robot is drawing too much power
   static double speedScale = 1;
+  static double gyroError = 2;
   static double lastGyroAngle = 0;
   static boolean withGyro = false;
 
@@ -43,7 +45,8 @@ public class Drive2903 extends Subsystem {
     RightFrontMotor = new TalonSRX(RobotMap.RightFrontMotor);
     LeftRearMotor = new TalonSRX(RobotMap.LeftRearMotor);
     RightRearMotor = new TalonSRX(RobotMap.RightRearMotor);
-    wheelToggler = new Solenoid(RobotMap.TBD);
+    driveLower = new Solenoid(RobotMap.driveLower);
+    driveLift = new Solenoid(RobotMap.driveLift);
     
     LeftFrontMotor.configPeakOutputForward(maxOutput, 0);
     LeftFrontMotor.configPeakOutputReverse(-maxOutput, 0);
@@ -81,27 +84,28 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 
 public void arcadeDrive(double forward, double side, double turn) {
   
-  double f_turn = 0;
+  /*double f_turn = 0;
   if (Math.abs(turn) <= 0.07) {
     if(!withGyro) lastGyroAngle = Robot.navXSubsystem.turnAngle();
     withGyro = true;
     Robot.gyroController.setSetpoint(lastGyroAngle);
     Robot.gyroController.enable();
-    f_turn = Robot.gyroPIDTurn;
+    if (Math.abs(Robot.navXSubsystem.turnAngle() - lastGyroAngle) > gyroError)
+      f_turn = Robot.gyroPIDTurn;
     SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
   } else {
     withGyro = false;
-    lastGyroAngle = Robot.navXSubsystem.turnAngle();
     SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
     Robot.gyroController.disable();
     f_turn = turn;
   }
+  */
   
-  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn - forward + side)));
-  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn - forward - side)));
+  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + side)));
+  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward - side)));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn + forward + side))) ;
-  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-f_turn + forward - side)));
+  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + side))) ;
+  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward - side)));
 }
 
   public void arcadeDrive(double forward, double turn) {
@@ -109,11 +113,13 @@ public void arcadeDrive(double forward, double side, double turn) {
   }
 
   public void mecanumDown() {
-    wheelToggler.set(true);
+    driveLower.set(true);
+    driveLift.set(false);
   }
 
   public void tractionDown() {
-    wheelToggler.set(false);
+    driveLower.set(false);
+    driveLift.set(true);
   }
 
 }
