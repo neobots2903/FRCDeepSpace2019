@@ -4,7 +4,6 @@ import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
-import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -12,7 +11,6 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 
@@ -26,35 +24,35 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     private TalonSRX elbowMotor;
     public Solenoid panelRetract;
     public Solenoid panelEject;
-    public Potentiometer elbowPotentiometer;
+    public AnalogInput elbowPotentiometer;
     public DigitalInput topHall;
     public DigitalInput bottomHall;
 
 
     //THESE ARE NOT SET! REEEEEEE
-    final int ELBOW_MAX = 10;
-    final int ELBOW_MIN = 0;
+    final int ELBOW_MAX = 999999999;
+    final int ELBOW_MIN = -999999999;
     final int WRIST_MAX = 999999999;
     final int WRIST_MIN = -999999999;
 
-    final int ELBOW_TOP = 0;
-    final int WRIST_TOP = 0;
+    final int ELBOW_TOP = 2424;
+    final int WRIST_TOP = -417;
 
-    final int ELBOW_MIDDLE = 0;
-    final int WRIST_MIDDLE = 0;
+    final int ELBOW_MIDDLE = 3245;
+    final int WRIST_MIDDLE = 347;
 
-    final int ELBOW_BOTTOM = 0;
-    final int WRIST_BOTTOM = 0;
+    final int ELBOW_BOTTOM = 3797;
+    final int WRIST_BOTTOM = 1120;
 
-    final int ELBOW_FLOOR = 0;
-    final int WRIST_FLOOR = 0;
+    final int ELBOW_FLOOR = 3878;
+    final int WRIST_FLOOR = -890;
 
     @Override
     protected void initDefaultCommand() {
     }
     public PickUpArm2903(){
         Thread thread = new Thread(this);
-        elbowPotentiometer = new AnalogPotentiometer(0, 360, 30);
+        elbowPotentiometer = new AnalogInput(RobotMap.elbowPotentiometer);
         leftIntakeMotor = new TalonSRX(RobotMap.TBD);
         rightIntakeMotor = new TalonSRX(RobotMap.TBD);
         wristMotor = new TalonSRX(RobotMap.WristMotor);
@@ -65,6 +63,26 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         topHall = new DigitalInput(RobotMap.upperHall);
         bottomHall = new DigitalInput(RobotMap.bottomHall);
         thread.start();
+    }
+
+    public void goToFloor() {
+        SetElbowTarget(ELBOW_FLOOR);
+        SetWristTarget(WRIST_FLOOR);
+    }
+
+    public void goToBottom() {
+        SetElbowTarget(ELBOW_BOTTOM);
+        SetWristTarget(WRIST_BOTTOM);
+    }
+
+    public void goToMiddle() {
+        SetElbowTarget(ELBOW_MIDDLE);
+        SetWristTarget(WRIST_MIDDLE);
+    }
+
+    public void goToTop() {
+        SetElbowTarget(ELBOW_TOP);
+        SetWristTarget(WRIST_TOP);
     }
 
     public void TakeIn() {
@@ -79,13 +97,10 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         leftIntakeMotor.set(ControlMode.PercentOutput ,0);
         rightIntakeMotor.set(ControlMode.Position ,0);
     }
-    public void WristSet(int targetPos){
-        if(targetPos > WRIST_MAX)
-            targetPos = WRIST_MAX;
-        else if(targetPos < WRIST_MIN)
-            targetPos = WRIST_MIN;
-        wristMotor.set(ControlMode.Position, targetPos);
-        SmartDashboard.putNumber("Wrist Encoder Value:", wristMotor.getSelectedSensorPosition());
+    public void WristSet(){
+        wristMotor.set(ControlMode.PercentOutput, -Robot.wristValue);
+        SmartDashboard.putNumber("Wrist Encoder Value:", getWrist());
+        SmartDashboard.putNumber("Wrist Speed:", Robot.wristValue);
     }
 
     public void WristSetHa(double speed) {
@@ -106,21 +121,37 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     }
 
     public double getElbow() {
-    return elbowPotentiometer.get();
+    return elbowPotentiometer.getValue();
+    }
+
+    public double getWrist() {
+        return wristMotor.getSelectedSensorPosition();
     }
     
     public void ElbowSet(){
-        if (topHall.get() && Robot.dartValue > 0) return;
-        if (bottomHall.get() && Robot.dartValue < 0) return;
-        elbowMotor.set(ControlMode.PercentOutput, Robot.dartValue);
+        if ((!topHall.get() && -Robot.dartValue > 0) ||
+        (!bottomHall.get() && -Robot.dartValue < 0)) 
+            elbowMotor.set(ControlMode.PercentOutput, 0);
+        else
+            elbowMotor.set(ControlMode.PercentOutput, -Robot.dartValue);
+
         SmartDashboard.putNumber("Elbow Encoder Value:", getElbow());
+        SmartDashboard.putNumber("Elbow Speed:", -Robot.dartValue);
+        SmartDashboard.putBoolean("Top Hall:", !topHall.get());
+        SmartDashboard.putBoolean("Bottom Hall:", !bottomHall.get());
     }
 
     public void ElbowSetHa(double speed) {
-        if (!topHall.get() && speed > 0) return;
-        if (!bottomHall.get() && speed < 0) return;
+        if ((!topHall.get() && speed > 0) ||
+        (!bottomHall.get() && speed < 0)) 
+            elbowMotor.set(ControlMode.PercentOutput, 0);
+        else
         elbowMotor.set(ControlMode.PercentOutput, speed);
+
         SmartDashboard.putNumber("Elbow Encoder Value:", getElbow());
+        SmartDashboard.putNumber("Elbow Speed:", Robot.dartValue);
+        SmartDashboard.putBoolean("Top Hall:", !topHall.get());
+        SmartDashboard.putBoolean("Bottom Hall:", !bottomHall.get());
     }
 
     public void SetElbowTarget(int t){
@@ -130,6 +161,15 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
             Robot.dartController.setSetpoint(ELBOW_MIN);
         else 
             Robot.dartController.setSetpoint(t);
+    }
+
+    public void SetWristTarget(int t){
+        if(t > WRIST_MAX)
+            Robot.wristController.setSetpoint(WRIST_MAX);
+        else if(t < WRIST_MIN)
+            Robot.wristController.setSetpoint(WRIST_MIN);
+        else 
+            Robot.wristController.setSetpoint(t);
     }
 
    /* public void ElbowUp(){ 
@@ -165,7 +205,10 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     @Override
     public void run() {
+        while(true) {
         //ElbowSet();
+        //WristSet();
+    }
     }
     
 }

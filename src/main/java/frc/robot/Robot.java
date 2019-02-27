@@ -45,17 +45,20 @@ public class Robot extends TimedRobot {
   public static PIDController visionTurnController;
   public static PIDController visionStrafeController;
   public static PIDController dartController;
+  public static PIDController wristController;
   public static PIDController lidarController;
 
   public static PIDSource visionTurnSource;
   public static PIDSource visionStrafeSource;
   public static PIDSource dartSource;
+  public static PIDSource wristSource;
   public static PIDSource lidarSource;
 
   public static PIDOutput visionTurnOutput;
   public static PIDOutput visionStrafeOutput;
   public static PIDOutput gyroOutput;
   public static PIDOutput dartOutput;
+  public static PIDOutput wristOutput;
   public static PIDOutput lidarOutput;
 
   public static LineSensor2903 lineSubsystem;
@@ -85,7 +88,8 @@ public class Robot extends TimedRobot {
 
   public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
   public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
-  public static PIDF dartPIDF = new PIDF(0.06, 0, 0, 0);
+  public static PIDF dartPIDF = new PIDF(0.02, 0, 0, 0);
+  public static PIDF wristPIDF = new PIDF(0.02, 0, 0, 0);
   public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
   public static PIDF lidarPIDF = new PIDF(0.08, 0, 0, 0);
 
@@ -96,6 +100,7 @@ public class Robot extends TimedRobot {
   public static double visionStrafeValue = 0;
   public static double lidarTurnValue = 0;
   public static double dartValue = 0;
+  public static double wristValue = 0;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -120,12 +125,14 @@ public class Robot extends TimedRobot {
     visionTurnSource = new VisionTurnSource();
     visionStrafeSource = new VisionStrafeSource();
     dartSource = new DartSource();
+    wristSource = new WristSource();
     lidarSource = new LidarSource();
 
     visionTurnOutput = new VisionTurnOutput();
     visionStrafeOutput = new VisionStrafeOutput();
     gyroOutput = new GyroPIDOutput();
     dartOutput = new DartOutput();
+    wristOutput = new WristOutput();
     lidarOutput = new LidarPIDOutput();
 
     driveSubsystem.init();
@@ -160,7 +167,14 @@ public class Robot extends TimedRobot {
 
     dartController = new PIDController(dartPIDF.vkP, dartPIDF.vkI, dartPIDF.vkD,dartPIDF.vkF,
     dartSource,dartOutput);
-    gyroController.setInputRange(-180.0f, 180.0f);
+    gyroController.setInputRange(0.0f, 4000.0f);
+    gyroController.setOutputRange(-0.75, 0.75);
+    gyroController.setAbsoluteTolerance(kToleranceDegrees);
+    gyroController.setContinuous(false);
+
+    wristController = new PIDController(wristPIDF.vkP, wristPIDF.vkI, wristPIDF.vkD,wristPIDF.vkF,
+    wristSource,wristOutput);
+    gyroController.setInputRange(-5000.0f, 5000.0f);
     gyroController.setOutputRange(-1.0, 1.0);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(false);
@@ -175,6 +189,7 @@ public class Robot extends TimedRobot {
     visionTurnController.setSetpoint(0);
     visionStrafeController.setSetpoint(0);
     dartController.setSetpoint(pickUpArmSubsystem.getElbow());
+    dartController.setSetpoint(pickUpArmSubsystem.getWrist());
     //lidarController.setSetpoint(0);
 
     SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF.vkP);
@@ -323,6 +338,23 @@ public class Robot extends TimedRobot {
     }
   }
 
+  class WristSource implements PIDSource {
+
+    @Override
+    public void setPIDSourceType(PIDSourceType pidSource) {
+    }
+
+    @Override
+    public PIDSourceType getPIDSourceType() {
+      return PIDSourceType.kDisplacement;
+    }
+
+    @Override
+    public double pidGet() {
+      return pickUpArmSubsystem.getWrist();
+    }
+  }
+
   class LidarSource implements PIDSource {
 
     @Override
@@ -369,6 +401,14 @@ public class Robot extends TimedRobot {
     @Override
     public void pidWrite(double output) {
       Robot.dartValue = output;
+    }
+  }
+
+  class WristOutput implements PIDOutput {
+
+    @Override
+    public void pidWrite(double output) {
+      Robot.wristValue = output;
     }
   }
 

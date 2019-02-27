@@ -23,6 +23,9 @@ public class TeleOp extends Command {
   boolean lock4 = false;
   boolean lock5 = false;
   boolean lock6 = false;
+  boolean lock7 = false;
+  boolean lock8 = false;
+  boolean lock9 = false;
 
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
@@ -33,6 +36,8 @@ public class TeleOp extends Command {
   @Override
   protected void initialize() {
     Robot.limelightSubsystem.setTargetMode();
+    Robot.dartController.enable();
+    Robot.wristController.enable();
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -108,21 +113,54 @@ public class TeleOp extends Command {
     } else {
       lock5 = false;
     }
-
+/*
     if (Robot.driveJoy.getPOV() == 270) {
       Robot.pickUpArmSubsystem.WristSetHa(0.50);
     } else if (Robot.driveJoy.getPOV() == 90) {
       Robot.pickUpArmSubsystem.WristSetHa(-0.40);
     } else {
       Robot.pickUpArmSubsystem.WristSetHa(0.0);
-    }
+    }*/
 
+    /*
     if (Robot.driveJoy.getPOV() == 180) {
       Robot.pickUpArmSubsystem.ElbowSetHa(-0.45);
     } else if (Robot.driveJoy.getPOV() == 0) {
       Robot.pickUpArmSubsystem.ElbowSetHa(0.75);
     } else {
       Robot.pickUpArmSubsystem.ElbowSetHa(0.0);
+    }*/
+
+    if (Robot.opJoy.getRawButton(4)) {
+      if (!lock6)
+        Robot.pickUpArmSubsystem.goToTop();
+        lock6 = true;
+    } else {
+      lock6 = false;
+    }
+
+    if (Robot.opJoy.getRawButton(3)) {
+      if (!lock7)
+        Robot.pickUpArmSubsystem.goToMiddle();
+        lock7 = true;
+    } else {
+      lock7 = false;
+    }
+
+    if (Robot.opJoy.getRawButton(1)) {
+      if (!lock8)
+        Robot.pickUpArmSubsystem.goToBottom();
+        lock8 = true;
+    } else {
+      lock8 = false;
+    }
+
+    if (Robot.opJoy.getRawButton(2)) {
+      if (!lock9)
+        Robot.pickUpArmSubsystem.goToFloor();
+        lock9 = true;
+    } else {
+      lock9 = false;
     }
 
     Robot.limelightSubsystem.getTA();
