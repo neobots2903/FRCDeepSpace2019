@@ -12,8 +12,6 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 /**
@@ -28,8 +26,11 @@ public class Drive2903 extends Subsystem {
   Solenoid driveLower;
   Solenoid driveLift;
 
+  DriveState currentDriveState = DriveState.Traction;
+
   static double maxOutput = 1; //Reduce if robot is drawing too much power
   static double speedScale = 1;
+  static double strafeFrontRestrict = 0.6; //Used only when strafing, slows down front wheels to account for unbalanced weight
   static double gyroError = 2;
   static double lastGyroAngle = 0;
   static boolean withGyro = false;
@@ -64,6 +65,8 @@ public class Drive2903 extends Subsystem {
     LeftRearMotor.set(ControlMode.PercentOutput, 0);
     RightFrontMotor.set(ControlMode.PercentOutput, 0) ;
     RightRearMotor.set(ControlMode.PercentOutput, 0);
+
+    tractionDown();
   }
 
 /*
@@ -101,10 +104,10 @@ public void arcadeDrive(double forward, double side, double turn) {
   }
   */
   
-  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + side)));
+  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + strafeFrontRestrict*side)));
   LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward - side)));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + side))) ;
+  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + strafeFrontRestrict*side))) ;
   RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward - side)));
 }
 
@@ -112,14 +115,24 @@ public void arcadeDrive(double forward, double side, double turn) {
     arcadeDrive(forward, 0, turn);
   }
 
+  public enum DriveState {
+    Traction, Mecanum
+  }
+
   public void mecanumDown() {
     driveLower.set(true);
     driveLift.set(false);
+    currentDriveState = DriveState.Mecanum;
   }
 
   public void tractionDown() {
     driveLower.set(false);
     driveLift.set(true);
+    currentDriveState = DriveState.Traction;
+  }
+
+  public DriveState getDriveState() {
+    return currentDriveState;
   }
 
 }

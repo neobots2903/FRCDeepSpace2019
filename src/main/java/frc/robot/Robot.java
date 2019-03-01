@@ -189,7 +189,7 @@ public class Robot extends TimedRobot {
     visionTurnController.setSetpoint(0);
     visionStrafeController.setSetpoint(0);
     dartController.setSetpoint(pickUpArmSubsystem.getElbow());
-    dartController.setSetpoint(pickUpArmSubsystem.getWrist());
+    wristController.setSetpoint(pickUpArmSubsystem.getWrist());
     //lidarController.setSetpoint(0);
 
     SmartDashboard.putNumber("VisTurn kP", visionTurnPIDF.vkP);
