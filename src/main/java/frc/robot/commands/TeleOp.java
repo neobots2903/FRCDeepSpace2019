@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 import frc.robot.subsystems.Lidar2903.LidarPosition;
+import frc.robot.subsystems.PickUpArm2903.ArmState;
 import frc.robot.subsystems.Drive2903.DriveState;
 
 /**
@@ -27,6 +28,7 @@ public class TeleOp extends Command {
   boolean ArmMiddleLock = false;
   boolean ArmBottomLock = false;
   boolean ArmFloorLock = false;
+  boolean ArmConfinedLock = false;
 
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
@@ -36,7 +38,8 @@ public class TeleOp extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    Robot.limelightSubsystem.setTargetMode();
+    //Robot.limelightSubsystem.setTargetMode();
+    Robot.limelightSubsystem.setLight(false);
     Robot.dartController.enable();
     Robot.wristController.enable();
   }
@@ -85,11 +88,12 @@ public class TeleOp extends Command {
       RampLiftLock = false;
     } 
 
-    if (Robot.opJoy.getRawButton(9)) { //Button is random, needs to change (probably)
+    if (Robot.opJoy.getRawButton(9) && Robot.opJoy.getRawButton(8)) { //Button is random, needs to change (probably)
       if (!RampLowerLock)
         Robot.rampSubsystem.lowerRamp();
         RampLowerLock = true;
     } else {
+      if (!Robot.opJoy.getRawButton(9) && !Robot.opJoy.getRawButton(8))
       RampLowerLock = false;
     }
 
@@ -119,7 +123,7 @@ public class TeleOp extends Command {
     
     if (Robot.opJoy.getRawButton(4)) {
       if (!ArmTopLock)
-        Robot.pickUpArmSubsystem.goToTop();
+        Robot.pickUpArmSubsystem.setArm(ArmState.Top);
         ArmTopLock = true;
     } else {
       ArmTopLock = false;
@@ -127,7 +131,7 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(3)) {
       if (!ArmMiddleLock)
-        Robot.pickUpArmSubsystem.goToMiddle();
+        Robot.pickUpArmSubsystem.setArm(ArmState.Middle);
         ArmMiddleLock = true;
     } else {
       ArmMiddleLock = false;
@@ -135,7 +139,7 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(1)) {
       if (!ArmBottomLock)
-        Robot.pickUpArmSubsystem.goToBottom();
+        Robot.pickUpArmSubsystem.setArm(ArmState.Bottom);
         ArmBottomLock = true;
     } else {
       ArmBottomLock = false;
@@ -143,10 +147,18 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(2)) {
       if (!ArmFloorLock)
-        Robot.pickUpArmSubsystem.goToFloor();
+        Robot.pickUpArmSubsystem.setArm(ArmState.Floor);
         ArmFloorLock = true;
     } else {
       ArmFloorLock = false;
+    }
+
+    if (Robot.opJoy.getRawButton(9)) { //Button is random, needs to change (probably)
+      if (!ArmConfinedLock)
+        Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
+        ArmConfinedLock = true;
+    } else {
+      ArmConfinedLock = false;
     }
 
     /* // Uncomment if manual arm / wrist control is needed

@@ -9,6 +9,8 @@ package frc.robot;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
@@ -89,7 +91,7 @@ public class Robot extends TimedRobot {
   public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
   public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
   public static PIDF dartPIDF = new PIDF(0.02, 0, 0, 0);
-  public static PIDF wristPIDF = new PIDF(0.02, 0, 0, 0);
+  public static PIDF wristPIDF = new PIDF(0.01, 0, 0, 0);
   public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
   public static PIDF lidarPIDF = new PIDF(0.08, 0, 0, 0);
 
@@ -101,6 +103,11 @@ public class Robot extends TimedRobot {
   public static double lidarTurnValue = 0;
   public static double dartValue = 0;
   public static double wristValue = 0;
+
+  public static final int IMG_WIDTH = 640;
+  public static final int IMG_HEIGHT = 480;
+  public static CameraServer cserver = CameraServer.getInstance();
+  public static UsbCamera camera;
 
   Command m_autonomousCommand;
   SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -139,6 +146,8 @@ public class Robot extends TimedRobot {
     lineSubsystem.init();
     limelightSubsystem.init();
 
+    camera = cserver.startAutomaticCapture();
+
     try {
       ahrs = new AHRS(SPI.Port.kMXP);
     } catch (RuntimeException ex) {
@@ -168,14 +177,14 @@ public class Robot extends TimedRobot {
     dartController = new PIDController(dartPIDF.vkP, dartPIDF.vkI, dartPIDF.vkD,dartPIDF.vkF,
     dartSource,dartOutput);
     gyroController.setInputRange(0.0f, 4000.0f);
-    gyroController.setOutputRange(-0.75, 0.75);
+    gyroController.setOutputRange(-0.70, 0.70);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(false);
 
     wristController = new PIDController(wristPIDF.vkP, wristPIDF.vkI, wristPIDF.vkD,wristPIDF.vkF,
     wristSource,wristOutput);
     gyroController.setInputRange(-5000.0f, 5000.0f);
-    gyroController.setOutputRange(-1.0, 1.0);
+    gyroController.setOutputRange(-0.70, 0.70);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(false);
 
@@ -215,8 +224,8 @@ public class Robot extends TimedRobot {
     driveJoy = new Joystick(RobotMap.DriveJoy);
     opJoy = new Joystick(RobotMap.OpJoy);
 
-    // m_chooser.setDefaultOption("Default Auto", new Autonomous());
-    m_chooser.setDefaultOption("Vision Auto Align", new VisionAutoAlign());
+    m_chooser.setDefaultOption("Drive Straight", new Autonomous());
+    m_chooser.addOption("Vision Auto Align", new VisionAutoAlign());
     m_chooser.addOption("Cargo Vision Test", new CargoVisionTest());
     m_chooser.addOption("Gyro Test", new GyroTest());
     m_chooser.addOption("Line Follower", new LineFollower());

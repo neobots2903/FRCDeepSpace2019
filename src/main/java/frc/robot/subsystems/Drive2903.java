@@ -12,6 +12,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 /**
@@ -34,6 +36,8 @@ public class Drive2903 extends Subsystem {
   static double gyroError = 2;
   static double lastGyroAngle = 0;
   static boolean withGyro = false;
+
+  static final boolean experimentalTurn = true;
 
   @Override
   public void initDefaultCommand() {
@@ -87,7 +91,9 @@ Strafe Left: 2 + 3 positive, 1 + 4 negative
 
 public void arcadeDrive(double forward, double side, double turn) {
   
-  /*double f_turn = 0;
+  //THIS ATTEMPTS TO HOLD A HEADING WHILE DRIVING STRAIGHT / STRAFING
+  //**EXPERIMENTAL!**
+  double f_turn = 0;
   if (Math.abs(turn) <= 0.07) {
     if(!withGyro) lastGyroAngle = Robot.navXSubsystem.turnAngle();
     withGyro = true;
@@ -98,17 +104,35 @@ public void arcadeDrive(double forward, double side, double turn) {
     SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
   } else {
     withGyro = false;
+    lastGyroAngle = Robot.navXSubsystem.turnAngle();
     SmartDashboard.putNumber("Target Gyro", Robot.gyroController.getSetpoint());
     Robot.gyroController.disable();
     f_turn = turn;
   }
-  */
   
-  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward + strafeFrontRestrict*side)));
-  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn - forward - side)));
+  // THIS ADJUSTS THE FRONT WHEEL SPEED WHILE STRAFING TO COUNTER IMBALANCE OF WHEELS
+  //**EXPERIMENTAL!**
+  if (Math.abs(turn) <= 0.07 && side != 0)  
+  if (Robot.navXSubsystem.turnAngle() - lastGyroAngle > gyroError)
+  strafeFrontRestrict-=0.02*((side < 0) ? -1 : 1);  //if we're turning right, adjust front speed
+  else if (Robot.navXSubsystem.turnAngle() - lastGyroAngle < gyroError)
+  strafeFrontRestrict+=0.02*((side < 0) ? -1 : 1); //if we're turning left, adjust front speed
+  
+  LeftFrontMotor.set(ControlMode.PercentOutput, (speedScale * 
+    (((experimentalTurn) ? -f_turn : -turn) - forward + strafeFrontRestrict*side)
+    ));
+    
+  LeftRearMotor.set(ControlMode.PercentOutput, (speedScale * 
+    (((experimentalTurn) ? -f_turn : -turn) - forward - side)
+    ));
 
-  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward + strafeFrontRestrict*side))) ;
-  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * (-turn + forward - side)));
+  RightFrontMotor.set(ControlMode.PercentOutput, (speedScale * 
+    (((experimentalTurn) ? -f_turn : -turn) + forward + strafeFrontRestrict*side)
+    ));
+
+  RightRearMotor.set(ControlMode.PercentOutput, (speedScale * 
+    (((experimentalTurn) ? -f_turn : -turn) + forward - side)
+    ));
 }
 
   public void arcadeDrive(double forward, double turn) {

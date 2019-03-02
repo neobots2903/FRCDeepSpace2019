@@ -28,12 +28,20 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     public DigitalInput topHall;
     public DigitalInput bottomHall;
 
+    ArmState currentArmState = ArmState.Confined;
+    Thread currentTask = null;
 
     //THESE ARE NOT SET! REEEEEEE
     final int ELBOW_MAX = 999999999;
     final int ELBOW_MIN = -999999999;
     final int WRIST_MAX = 999999999;
     final int WRIST_MIN = -999999999;
+
+    //Larger elbow = lower position
+    //Larger wrist = folded up
+
+    final int ELBOW_AWAY = 2424;  //CHANGE!!
+    final int WRIST_AWAY = -417;  //CHANGE!!
 
     final int ELBOW_TOP = 2424;
     final int WRIST_TOP = -417;
@@ -46,6 +54,9 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     final int ELBOW_FLOOR = 3878;
     final int WRIST_FLOOR = -890;
+
+    final int ELBOW_CONFINED = 3878;  //CHANGE!!
+    final int WRIST_CONFINED = -890;  //CHANGE!!
 
     @Override
     protected void initDefaultCommand() {
@@ -65,24 +76,90 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         thread.start();
     }
 
+    public enum ArmState {
+        Confined, Floor, Bottom, Middle, Top, Away
+    }
+
+    public void waitASec() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setArm(ArmState state) {
+        try {
+        if (currentTask != null)
+            if (currentTask.isAlive()) return;
+
+        currentTask = new Thread(() -> {
+            ensureWristCanMove();
+            if (state.equals(ArmState.Confined))
+                goToConfined();
+            else if (state.equals(ArmState.Floor))
+                goToFloor();
+            else if (state.equals(ArmState.Bottom))
+                goToBottom();
+            else if (state.equals(ArmState.Middle))
+                goToMiddle();
+            else if (state.equals(ArmState.Top))
+                goToTop();
+            else if (state.equals(ArmState.Away))
+                goToAway();
+        });
+        currentTask.start();    //Running as thread so sleep functions don't block teleOp
+    } catch (Exception ex) { }
+    }
+
+    public void goToConfined() {
+        SetWristTarget(WRIST_CONFINED); //Move wrist all the way up
+        waitASec(); //Give wrist time to move out of the way
+        SetElbowTarget(ELBOW_CONFINED); //Move elbow all the way down
+        currentArmState = ArmState.Confined;
+    }
+
     public void goToFloor() {
-        SetElbowTarget(ELBOW_FLOOR);
         SetWristTarget(WRIST_FLOOR);
+        waitASec();
+        SetElbowTarget(ELBOW_FLOOR);
+        currentArmState = ArmState.Floor;
     }
 
     public void goToBottom() {
-        SetElbowTarget(ELBOW_BOTTOM);
         SetWristTarget(WRIST_BOTTOM);
+        waitASec(); 
+        SetElbowTarget(ELBOW_BOTTOM);
+        currentArmState = ArmState.Bottom;
     }
 
     public void goToMiddle() {
-        SetElbowTarget(ELBOW_MIDDLE);
         SetWristTarget(WRIST_MIDDLE);
+        waitASec(); 
+        SetElbowTarget(ELBOW_MIDDLE);
+        currentArmState = ArmState.Middle;
     }
 
     public void goToTop() {
+        if(wristNeedsUp(WRIST_MIDDLE-5)) {
+        SetWristTarget(WRIST_MIDDLE);
+        waitASec(); 
+        }
         SetElbowTarget(ELBOW_TOP);
+        waitASec(); 
         SetWristTarget(WRIST_TOP);
+        currentArmState = ArmState.Top;
+    }
+
+    public void goToAway() {
+        if(wristNeedsUp(WRIST_MIDDLE-5)) {
+        SetWristTarget(WRIST_MIDDLE);
+        waitASec(); 
+        }
+        SetElbowTarget(ELBOW_AWAY);
+        waitASec(); 
+        SetWristTarget(WRIST_AWAY);
+        currentArmState = ArmState.Away;
     }
 
     public void TakeIn() {
@@ -122,6 +199,17 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     public double getElbow() {
     return elbowPotentiometer.getValue();
+    }
+
+    public void ensureWristCanMove() {
+        if (getElbow() > ELBOW_BOTTOM) { //assuming wrist can move at bottom rocket position
+            SetElbowTarget(ELBOW_BOTTOM);   //Arm must go up to allow wrist movement
+            waitASec(); //make sure arm has time to move out of the way
+            }
+    }
+
+    public boolean wristNeedsUp(double position) {
+        return getWrist() < position;
     }
 
     public double getWrist() {
