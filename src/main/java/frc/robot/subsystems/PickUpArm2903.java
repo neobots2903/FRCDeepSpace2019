@@ -30,33 +30,40 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     ArmState currentArmState = ArmState.Confined;
     Thread currentTask = null;
+    public boolean autoPosition = false;
 
     //THESE ARE NOT SET! REEEEEEE
-    final int ELBOW_MAX = 999999999;
-    final int ELBOW_MIN = -999999999;
+    final int ELBOW_MAX = 0;
+    final int ELBOW_MIN = -1745;
     final int WRIST_MAX = 999999999;
     final int WRIST_MIN = -999999999;
 
     //Larger elbow = lower position
     //Larger wrist = folded up
 
-    final int ELBOW_AWAY = 2424;  //CHANGE!!
+    double ELBOW_ZEROPOINT = 0;
+    double WRIST_ZEROPOINT = 0;
+
+    final int ELBOW_AWAY = -1454;  //CHANGE!!
     final int WRIST_AWAY = -417;  //CHANGE!!
 
-    final int ELBOW_TOP = 2424;
-    final int WRIST_TOP = -417;
+    final int ELBOW_TOP = -1450;
+    final int WRIST_TOP = -1753;
 
-    final int ELBOW_MIDDLE = 3245;
-    final int WRIST_MIDDLE = 347;
+    final int ELBOW_MIDDLE = -662;
+    final int WRIST_MIDDLE = -895;
 
-    final int ELBOW_BOTTOM = 3797;
-    final int WRIST_BOTTOM = 1120;
+    final int ELBOW_BOTTOM = -114;
+    final int WRIST_BOTTOM = -415;
 
-    final int ELBOW_FLOOR = 3878;
-    final int WRIST_FLOOR = -890;
+    final int ELBOW_FLOOR = 40;
+    final int WRIST_FLOOR = -2022;
 
-    final int ELBOW_CONFINED = 3878;  //CHANGE!!
+    final int ELBOW_CONFINED = 0;  //CHANGE!kkkkkkkkkkkkkkk!
     final int WRIST_CONFINED = -890;  //CHANGE!!
+
+    final int ELBOW_FLOORUP = -148;
+    final int WRIST_FLOORUP = -1420;
 
     @Override
     protected void initDefaultCommand() {
@@ -73,6 +80,8 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         panelEject = new Solenoid(RobotMap.panelEject);
         topHall = new DigitalInput(RobotMap.upperHall);
         bottomHall = new DigitalInput(RobotMap.bottomHall);
+        ELBOW_ZEROPOINT = getElbow();
+        WRIST_ZEROPOINT = getWrist();
         thread.start();
     }
 
@@ -82,34 +91,47 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     public void waitASec() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(350);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public void setArm(ArmState state) {
+        ensureWristCanMove();
+        if (state.equals(ArmState.Confined))
+            goToConfined();
+        else if (state.equals(ArmState.Floor))
+            goToFloor();
+        else if (state.equals(ArmState.Bottom))
+            goToBottom();
+        else if (state.equals(ArmState.Middle))
+            goToMiddle();
+        else if (state.equals(ArmState.Top))
+            goToTop();
+        else if (state.equals(ArmState.Away))
+            goToAway();
+    }
+
+    public void setArmAsync(ArmState state) {
         try {
         if (currentTask != null)
-            if (currentTask.isAlive()) return;
+            currentTask.stop();
+            //if (currentTask.isAlive()) return;
 
-        currentTask = new Thread(() -> {
-            ensureWristCanMove();
-            if (state.equals(ArmState.Confined))
-                goToConfined();
-            else if (state.equals(ArmState.Floor))
-                goToFloor();
-            else if (state.equals(ArmState.Bottom))
-                goToBottom();
-            else if (state.equals(ArmState.Middle))
-                goToMiddle();
-            else if (state.equals(ArmState.Top))
-                goToTop();
-            else if (state.equals(ArmState.Away))
-                goToAway();
+        currentTask = new Thread(new Runnable() {
+            public void run() {
+                setArm(state);
+                return;
+            }
         });
         currentTask.start();    //Running as thread so sleep functions don't block teleOp
     } catch (Exception ex) { }
+    }
+
+    public void waitTillElbowClose(double position) {
+        while (Math.abs(getElbow() - position) > 80)
+            waitASec();
     }
 
     public void goToConfined() {
@@ -123,6 +145,15 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         SetWristTarget(WRIST_FLOOR);
         waitASec();
         SetElbowTarget(ELBOW_FLOOR);
+        waitTillElbowClose(ELBOW_FLOOR);
+        currentArmState = ArmState.Floor;
+        goToFloorUp();
+    }
+
+    public void goToFloorUp() {
+        SetElbowTarget(ELBOW_FLOORUP);
+        waitASec();
+        SetWristTarget(WRIST_FLOORUP);
         currentArmState = ArmState.Floor;
     }
 
@@ -182,7 +213,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     public void WristSetHa(double speed) {
         wristMotor.set(ControlMode.PercentOutput, speed);
-        SmartDashboard.putNumber("Wrist Encoder Value:", wristMotor.getSelectedSensorPosition());
+        SmartDashboard.putNumber("Wrist Encoder Value:", getWrist());
     }
     
   /*  public void WristUp(){
@@ -198,12 +229,28 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     }
 
     public double getElbow() {
-    return elbowPotentiometer.getValue();
+    return elbowPotentiometer.getValue()-ELBOW_ZEROPOINT;
+    }
+
+    public double getWristTarget() {
+        if (currentArmState.equals(ArmState.Confined))
+        return WRIST_CONFINED;
+    else if (currentArmState.equals(ArmState.Floor))
+        return WRIST_FLOOR;
+    else if (currentArmState.equals(ArmState.Bottom))
+        return WRIST_BOTTOM;
+    else if (currentArmState.equals(ArmState.Middle))
+        return WRIST_MIDDLE;
+    else if (currentArmState.equals(ArmState.Top))
+        return WRIST_TOP;
+    else if (currentArmState.equals(ArmState.Away))
+        return WRIST_AWAY;
+    else return 0;
     }
 
     public void ensureWristCanMove() {
-        if (getElbow() > ELBOW_BOTTOM) { //assuming wrist can move at bottom rocket position
-            SetElbowTarget(ELBOW_BOTTOM);   //Arm must go up to allow wrist movement
+        if (getElbow() > ELBOW_FLOORUP) { //assuming wrist can move at bottom rocket position
+            SetElbowTarget(ELBOW_FLOORUP);   //Arm must go up to allow wrist movement
             waitASec(); //make sure arm has time to move out of the way
             }
     }
@@ -213,7 +260,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     }
 
     public double getWrist() {
-        return wristMotor.getSelectedSensorPosition();
+        return wristMotor.getSelectedSensorPosition()-WRIST_ZEROPOINT;
     }
     
     public void ElbowSet(){
@@ -221,7 +268,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         (!bottomHall.get() && -Robot.dartValue < 0)) 
             elbowMotor.set(ControlMode.PercentOutput, 0);
         else
-            elbowMotor.set(ControlMode.PercentOutput, -Robot.dartValue);
+            elbowMotor.set(ControlMode.PercentOutput, (-Robot.dartValue)* ((-Robot.dartValue < 0) ? 1.5 : 1));
 
         SmartDashboard.putNumber("Elbow Encoder Value:", getElbow());
         SmartDashboard.putNumber("Elbow Speed:", -Robot.dartValue);
@@ -242,7 +289,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         SmartDashboard.putBoolean("Bottom Hall:", !bottomHall.get());
     }
 
-    public void SetElbowTarget(int t){
+    public void SetElbowTarget(double t){
         if(t > ELBOW_MAX)
             Robot.dartController.setSetpoint(ELBOW_MAX);
         else if(t < ELBOW_MIN)
@@ -251,7 +298,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
             Robot.dartController.setSetpoint(t);
     }
 
-    public void SetWristTarget(int t){
+    public void SetWristTarget(double t){
         if(t > WRIST_MAX)
             Robot.wristController.setSetpoint(WRIST_MAX);
         else if(t < WRIST_MIN)
@@ -284,18 +331,30 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     public void retract() {
         panelRetract.set(false);
         panelEject.set(true);
+        if(autoPosition)
+            SetWristTarget(getWristTarget());
     }
 
     public void eject() {
         panelRetract.set(true);
         panelEject.set(false);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        if(autoPosition)
+            SetWristTarget(getWristTarget()+300);
     }
 
     @Override
     public void run() {
         while(true) {
-        //ElbowSet();
-        //WristSet();
+            if(autoPosition) {
+                ElbowSet();
+                WristSet();
+            }
     }
     }
     

@@ -29,6 +29,7 @@ public class TeleOp extends Command {
   boolean ArmBottomLock = false;
   boolean ArmFloorLock = false;
   boolean ArmConfinedLock = false;
+  boolean autoPositionLock = false;
 
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
@@ -40,8 +41,14 @@ public class TeleOp extends Command {
   protected void initialize() {
     //Robot.limelightSubsystem.setTargetMode();
     Robot.limelightSubsystem.setLight(false);
+
+    Robot.dartController.setSetpoint(Robot.pickUpArmSubsystem.getElbow());
+    Robot.wristController.setSetpoint(Robot.pickUpArmSubsystem.getWrist());
+    
     Robot.dartController.enable();
     Robot.wristController.enable();
+
+    Robot.rampSubsystem.closeRamp();
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -76,28 +83,27 @@ public class TeleOp extends Command {
     */
 
     if (Robot.driveSubsystem.getDriveState().equals(DriveState.Mecanum))
-      Robot.driveSubsystem.arcadeDrive(forward, side, turn);
+      Robot.driveSubsystem.cartesianDrive(forward, side, turn);
     else
       Robot.driveSubsystem.arcadeDrive(forward, turn);
 
-    if (Robot.opJoy.getRawButton(8)) { //Button is random, needs to change (probably)
+    if (Robot.opJoy.getRawButton(7)) {
       if (!RampLiftLock)
-        Robot.rampSubsystem.liftRamp();
+        Robot.rampSubsystem.closeRamp();
       RampLiftLock = true;
     } else {
       RampLiftLock = false;
     } 
 
-    if (Robot.opJoy.getRawButton(9) && Robot.opJoy.getRawButton(8)) { //Button is random, needs to change (probably)
+    if (Robot.opJoy.getRawButton(8)) {
       if (!RampLowerLock)
-        Robot.rampSubsystem.lowerRamp();
+        Robot.rampSubsystem.openRamp();
         RampLowerLock = true;
     } else {
-      if (!Robot.opJoy.getRawButton(9) && !Robot.opJoy.getRawButton(8))
       RampLowerLock = false;
     }
 
-    if (Robot.opJoy.getRawButton(5)) { //Button is random, needs to change (probably)
+    if (Robot.driveJoy.getRawButton(1)) {
       if (!MecanumLock)
         Robot.driveSubsystem.mecanumDown();
       MecanumLock = true;
@@ -105,7 +111,7 @@ public class TeleOp extends Command {
       MecanumLock = false;
     } 
 
-    if (Robot.opJoy.getRawButton(6)) { //Button is random, needs to change (probably)
+    if (Robot.driveJoy.getRawButton(2)) {
       if (!TractionLock)
         Robot.driveSubsystem.tractionDown();
         TractionLock = true;
@@ -113,17 +119,15 @@ public class TeleOp extends Command {
       TractionLock = false;
     }
 
-    if (Robot.opJoy.getRawButton(7)) {
-      if (!PunchLock)
-        Robot.pickUpArmSubsystem.punch();
-        PunchLock = true;
+    if (Robot.opJoy.getRawButton(6)) {
+        Robot.pickUpArmSubsystem.eject();
     } else {
-      PunchLock = false;
+      Robot.pickUpArmSubsystem.retract();
     }
     
     if (Robot.opJoy.getRawButton(4)) {
       if (!ArmTopLock)
-        Robot.pickUpArmSubsystem.setArm(ArmState.Top);
+        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Top);
         ArmTopLock = true;
     } else {
       ArmTopLock = false;
@@ -131,7 +135,7 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(3)) {
       if (!ArmMiddleLock)
-        Robot.pickUpArmSubsystem.setArm(ArmState.Middle);
+        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Middle);
         ArmMiddleLock = true;
     } else {
       ArmMiddleLock = false;
@@ -139,7 +143,7 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(1)) {
       if (!ArmBottomLock)
-        Robot.pickUpArmSubsystem.setArm(ArmState.Bottom);
+        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Bottom);
         ArmBottomLock = true;
     } else {
       ArmBottomLock = false;
@@ -147,12 +151,13 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(2)) {
       if (!ArmFloorLock)
-        Robot.pickUpArmSubsystem.setArm(ArmState.Floor);
+        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Floor);
         ArmFloorLock = true;
     } else {
       ArmFloorLock = false;
     }
 
+    /*
     if (Robot.opJoy.getRawButton(9)) { //Button is random, needs to change (probably)
       if (!ArmConfinedLock)
         Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
@@ -160,25 +165,35 @@ public class TeleOp extends Command {
     } else {
       ArmConfinedLock = false;
     }
+    */
 
-    /* // Uncomment if manual arm / wrist control is needed
-    if (Robot.driveJoy.getPOV() == 270) {
-      Robot.pickUpArmSubsystem.WristSetHa(0.50);
-    } else if (Robot.driveJoy.getPOV() == 90) {
-      Robot.pickUpArmSubsystem.WristSetHa(-0.40);
+
+    if (Robot.opJoy.getRawButton(5)) { //Button is random, needs to change (probably)
+      if (!autoPositionLock)
+        Robot.pickUpArmSubsystem.autoPosition = !Robot.pickUpArmSubsystem.autoPosition;
+        autoPositionLock = true;
+    } else {
+      autoPositionLock = false;
+    }
+
+    // Uncomment if manual arm / wrist control is needed
+    if (Robot.opJoy.getPOV() == 270) {
+      Robot.pickUpArmSubsystem.WristSetHa(0.4);
+    } else if (Robot.opJoy.getPOV() == 90) {
+      Robot.pickUpArmSubsystem.WristSetHa(-0.6);
     } else {
       Robot.pickUpArmSubsystem.WristSetHa(0.0);
-    }*/
+    }
 
-    /*
-    if (Robot.driveJoy.getPOV() == 180) {
-      Robot.pickUpArmSubsystem.ElbowSetHa(-0.45);
-    } else if (Robot.driveJoy.getPOV() == 0) {
-      Robot.pickUpArmSubsystem.ElbowSetHa(0.75);
+    
+    if (Robot.opJoy.getPOV() == 180) {
+      Robot.pickUpArmSubsystem.ElbowSetHa(-0.4);
+    } else if (Robot.opJoy.getPOV() == 0) {
+      Robot.pickUpArmSubsystem.ElbowSetHa(0.7);
     } else {
       Robot.pickUpArmSubsystem.ElbowSetHa(0.0);
     }
-    */
+    
 
     Robot.limelightSubsystem.getTA();
     Robot.limelightSubsystem.getTX();

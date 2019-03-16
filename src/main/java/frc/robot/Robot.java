@@ -90,8 +90,8 @@ public class Robot extends TimedRobot {
 
   public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
   public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
-  public static PIDF dartPIDF = new PIDF(0.02, 0, 0, 0);
-  public static PIDF wristPIDF = new PIDF(0.01, 0, 0, 0);
+  public static PIDF dartPIDF = new PIDF(0.002, 0, 0, 0);
+  public static PIDF wristPIDF = new PIDF(0.001, 0, 0, 0);
   public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
   public static PIDF lidarPIDF = new PIDF(0.08, 0, 0, 0);
 
@@ -293,7 +293,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
+    //Scheduler.getInstance().run();
     Scheduler.getInstance().run();
+    teleopCommand.start();
   }
 
   class VisionTurnSource implements PIDSource {
@@ -437,6 +439,9 @@ class LidarPIDOutput implements PIDOutput {
     // this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
+    }
+    if (teleopCommand != null) {
+      teleopCommand.cancel();
     }
   }
 

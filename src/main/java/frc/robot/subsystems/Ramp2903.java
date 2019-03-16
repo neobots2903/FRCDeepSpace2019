@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import frc.robot.Robot;
@@ -8,17 +9,15 @@ import frc.robot.subsystems.PickUpArm2903.ArmState;
 
 public class Ramp2903 extends Subsystem {
 
-    public static final double R_RAMP_CLOSE = -0.5;
-    public static final double R_RAMP_OPEN = 0.5;
-    public static final double L_RAMP_CLOSE = -0.5;
-    public static final double L_RAMP_OPEN = 0.5;
-    public static final double S_RAMP_CLOSE = -0.5;
-    public static final double S_RAMP_OPEN = 0.5;
+    public static final double R_RAMP_CLOSE = 0.0;
+    public static final double R_RAMP_OPEN = 1.0;
+    public static final double L_RAMP_CLOSE = 1.0;
+    public static final double L_RAMP_OPEN = 0.0;
 
     public Solenoid rampLower = new Solenoid(RobotMap.rampLower);
     public Solenoid rampLift = new Solenoid(RobotMap.rampLift);
-    //public Servo rightRamp = new Servo(RobotMap.TBD);
-    //public Servo leftRamp = new Servo(RobotMap.TBD);
+    public Servo rightRamp = new Servo(RobotMap.rampServoRight);
+    public Servo leftRamp = new Servo(RobotMap.rampServoLeft);
 
     protected void initDefaultCommand() {
     }
@@ -28,27 +27,17 @@ public class Ramp2903 extends Subsystem {
     }
 
     public void openRamp() {
-        Robot.pickUpArmSubsystem.setArm(ArmState.Away);
-        //rightRamp.set(R_RAMP_OPEN);
-        //leftRamp.set(L_RAMP_OPEN);
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
         liftRamp();
+        rightRamp.setPosition(R_RAMP_CLOSE);
+        leftRamp.setPosition(L_RAMP_CLOSE);
     }
 
     public void closeRamp() {
-        Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
+        Robot.pickUpArmSubsystem.setArm(ArmState.Away);
+        rightRamp.setPosition(R_RAMP_OPEN);
+        leftRamp.setPosition(L_RAMP_OPEN);
         lowerRamp();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //rightRamp.set(R_RAMP_CLOSE);
-        //leftRamp.set(L_RAMP_CLOSE);
     }
 
     public void liftRamp() {

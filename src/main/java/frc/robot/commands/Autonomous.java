@@ -23,13 +23,16 @@ public class Autonomous extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
+    Robot.rampSubsystem.closeRamp();
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
     doForTime(1000, () -> Robot.driveSubsystem.arcadeDrive(1, 0));  //Fancy way to drive off platform for 1 second
-    
+    //Robot.driveSubsystem.turnToDegree(-90);
+    //doForTime(1000, () -> Robot.driveSubsystem.arcadeDrive(1, 0));
+    Robot.driveSubsystem.arcadeDrive(0, 0);
     //assuming we're lined up...
     //armSubsystem.insertCargo(); OR armSubsystem.placePanel();
   }
@@ -38,6 +41,7 @@ public class Autonomous extends Command {
     double end = System.currentTimeMillis() + millis;
     while (System.currentTimeMillis() < end)
       work.run();
+    return;
   }
 
   // Make this return true when this Command no longer needs to run execute()

@@ -39,13 +39,17 @@ public class RobotMap {
   public static final int OpJoy = 1;
 
   //DIO Ports
-  public static final int LineSensorLeft = 3;
-  public static final int LineSensorCenter = 4;
-  public static final int LineSensorRight = 5;
-  public static final int LineSensorFarLeft = 2;
-  public static final int LineSensorFarRight = 6;
+  // public static final int LineSensorLeft = 3;
+  // public static final int LineSensorCenter = 4;
+  // public static final int LineSensorRight = 5;
+  // public static final int LineSensorFarLeft = 2;
+  // public static final int LineSensorFarRight = 6;
   public static final int bottomHall = 1;
   public static final int upperHall = 0;
+
+  //PWM Ports
+  public static final int rampServoLeft = 1;
+  public static final int rampServoRight = 0;
 
   //AIO Ports
   public static final int elbowPotentiometer = 3;
