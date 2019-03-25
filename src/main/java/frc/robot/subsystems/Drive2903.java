@@ -11,6 +11,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 //import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
@@ -28,13 +29,14 @@ public class Drive2903 extends Subsystem {
   WPI_TalonSRX LeftRearMotor;
   WPI_TalonSRX RightRearMotor;
   MecanumDrive mecanumDrive;
+  PowerDistributionPanel pdp;
 
   Solenoid driveLower;
   Solenoid driveLift;
 
   DriveState currentDriveState = DriveState.Traction;
 
-  static double maxOutput = 1; //Reduce if robot is drawing too much power
+  static double idealVoltage = 12.8;
   static double speedScale = 1;
   static double strafeFrontRestrict = 1; //Used only when strafing, slows down front wheels to account for unbalanced weight
   static double gyroError = 2;
@@ -50,29 +52,20 @@ public class Drive2903 extends Subsystem {
   }
 
   public void init () {
+    pdp = new PowerDistributionPanel();
     LeftFrontMotor = new WPI_TalonSRX(RobotMap.LeftFrontMotor);
     RightFrontMotor = new WPI_TalonSRX(RobotMap.RightFrontMotor);
     LeftRearMotor = new WPI_TalonSRX(RobotMap.LeftRearMotor);
     RightRearMotor = new WPI_TalonSRX(RobotMap.RightRearMotor);
     driveLower = new Solenoid(RobotMap.driveLower);
     driveLift = new Solenoid(RobotMap.driveLift);
-    
-    LeftFrontMotor.configPeakOutputForward(maxOutput, 0);
-    LeftFrontMotor.configPeakOutputReverse(-maxOutput, 0);
-
-    RightFrontMotor.configPeakOutputForward(maxOutput, 0);
-		RightFrontMotor.configPeakOutputReverse(-maxOutput, 0);
-
-		LeftRearMotor.configPeakOutputForward(maxOutput, 0);
-		LeftRearMotor.configPeakOutputReverse(-maxOutput, 0);
-
-		RightRearMotor.configPeakOutputForward(maxOutput, 0);
-    RightRearMotor.configPeakOutputReverse(-maxOutput, 0);
 
     LeftFrontMotor.set(ControlMode.PercentOutput, 0);
     LeftRearMotor.set(ControlMode.PercentOutput, 0);
     RightFrontMotor.set(ControlMode.PercentOutput, 0) ;
     RightRearMotor.set(ControlMode.PercentOutput, 0);
+
+    setPowerPercent(1);
 
     mecanumDrive = new MecanumDrive(LeftFrontMotor, LeftRearMotor, RightFrontMotor, RightRearMotor);
     mecanumDrive.setRightSideInverted(true);
@@ -80,6 +73,23 @@ public class Drive2903 extends Subsystem {
     SmartDashboard.putNumber("Strafe adjust", 0.00);
   }
 
+  void setPowerPercent(double val) {
+    double value = 
+      (val > 1) ? 1 : 
+      (val < 0) ? 0 : val;
+
+    LeftFrontMotor.configPeakOutputForward(value, 0);
+    LeftFrontMotor.configPeakOutputReverse(-value, 0);
+
+    RightFrontMotor.configPeakOutputForward(value, 0);
+		RightFrontMotor.configPeakOutputReverse(-value, 0);
+
+		LeftRearMotor.configPeakOutputForward(value, 0);
+		LeftRearMotor.configPeakOutputReverse(-value, 0);
+
+		RightRearMotor.configPeakOutputForward(value, 0);
+    RightRearMotor.configPeakOutputReverse(-value, 0);
+  }
 /*
 
     @ ---------------- @
@@ -107,11 +117,12 @@ public void turnToDegree(double degree) {
 }
 
 public void cartesianDrive(double forward, double side, double turn) {
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
   mecanumDrive.driveCartesian(side, -forward, -turn);
 }
 
 public void arcadeDrive(double forward, double side, double turn) {
-  
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
   //THIS ATTEMPTS TO HOLD A HEADING WHILE DRIVING STRAIGHT / STRAFING
   //**EXPERIMENTAL!**
   double f_turn = 0;

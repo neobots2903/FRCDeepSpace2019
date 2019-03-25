@@ -47,23 +47,23 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     final int ELBOW_AWAY = -1454;  //CHANGE!!
     final int WRIST_AWAY = -417;  //CHANGE!!
 
-    final int ELBOW_TOP = -1450;
-    final int WRIST_TOP = -1753;
+    final int ELBOW_TOP = -2113;
+    final int WRIST_TOP = -1753; //CHANGE!!
 
-    final int ELBOW_MIDDLE = -662;
-    final int WRIST_MIDDLE = -895;
+    final int ELBOW_MIDDLE = -1591;
+    final int WRIST_MIDDLE = -895; //CHANGE!!
 
-    final int ELBOW_BOTTOM = -114;
-    final int WRIST_BOTTOM = -415;
+    final int ELBOW_BOTTOM = -714;
+    final int WRIST_BOTTOM = -415; //CHANGE!!
 
-    final int ELBOW_FLOOR = 40;
-    final int WRIST_FLOOR = -2022;
+    final int ELBOW_FLOOR = 0; //CHANGE!!
+    final int WRIST_FLOOR = -2022; //CHANGE!!
 
-    final int ELBOW_CONFINED = 0;  //CHANGE!kkkkkkkkkkkkkkk!
-    final int WRIST_CONFINED = -890;  //CHANGE!!
+    final int ELBOW_CONFINED = 0;
+    final int WRIST_CONFINED = 0;
 
-    final int ELBOW_FLOORUP = -148;
-    final int WRIST_FLOORUP = -1420;
+    final int ELBOW_FLOORUP = -148; //CHANGE!!
+    final int WRIST_FLOORUP = -1420; //CHANGE!!
 
     @Override
     protected void initDefaultCommand() {
@@ -74,7 +74,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         leftIntakeMotor = new TalonSRX(RobotMap.TBD);
         rightIntakeMotor = new TalonSRX(RobotMap.TBD);
         wristMotor = new TalonSRX(RobotMap.WristMotor);
-        wristMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
+        //wristMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
         elbowMotor = new TalonSRX(RobotMap.DartMotor);
         panelRetract = new Solenoid(RobotMap.panelRetract);
         panelEject = new Solenoid(RobotMap.panelEject);
@@ -98,7 +98,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
     }
 
     public void setArm(ArmState state) {
-        ensureWristCanMove();
+        //ensureWristCanMove();
         if (state.equals(ArmState.Confined))
             goToConfined();
         else if (state.equals(ArmState.Floor))
@@ -213,6 +213,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
 
     public void WristSetHa(double speed) {
         wristMotor.set(ControlMode.PercentOutput, speed);
+        SmartDashboard.putNumber("Wrist Speed:", speed);
         SmartDashboard.putNumber("Wrist Encoder Value:", getWrist());
     }
     
@@ -353,7 +354,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         while(true) {
             if(autoPosition) {
                 ElbowSet();
-                WristSet();
+                //WristSet();
             }
     }
     }

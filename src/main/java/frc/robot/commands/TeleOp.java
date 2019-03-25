@@ -31,6 +31,12 @@ public class TeleOp extends Command {
   boolean ArmConfinedLock = false;
   boolean autoPositionLock = false;
 
+  boolean HandLock = false;
+  boolean HandState = false;
+
+  boolean AutoAimLock = false;
+  boolean AutoAimState = false;
+
   public TeleOp() {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.driveSubsystem);
@@ -82,7 +88,24 @@ public class TeleOp extends Command {
     SmartDashboard.putBoolean("Line right?", Robot.lineSubsystem.rightDetected());
     */
 
-    if (Robot.driveSubsystem.getDriveState().equals(DriveState.Mecanum))
+    if (Robot.driveJoy.getRawButton(4)) {
+      if (!AutoAimLock)
+          AutoAimState = !AutoAimState;
+        AutoAimLock = true;
+    } else {
+      AutoAimLock = false;
+    }
+
+    if (AutoAimState) {
+      Robot.limelightSubsystem.setTargetMode();
+      Robot.visionTurnController.enable();
+      turn = Robot.visionTurnValue;
+    } else {
+      Robot.visionTurnController.disable();
+      Robot.limelightSubsystem.setLight(false);
+    }
+
+    if (!Robot.driveSubsystem.getDriveState().equals(DriveState.Mecanum))
       Robot.driveSubsystem.cartesianDrive(forward, side, turn);
     else
       Robot.driveSubsystem.arcadeDrive(forward, turn);
@@ -120,9 +143,15 @@ public class TeleOp extends Command {
     }
 
     if (Robot.opJoy.getRawButton(6)) {
-        Robot.pickUpArmSubsystem.eject();
+      if (!HandLock)
+        if (HandState)
+          Robot.pickUpArmSubsystem.eject();
+        else
+          Robot.pickUpArmSubsystem.retract();
+        HandState = !HandState;
+        HandLock = true;
     } else {
-      Robot.pickUpArmSubsystem.retract();
+      HandLock = false;
     }
     
     if (Robot.opJoy.getRawButton(4)) {
@@ -177,18 +206,26 @@ public class TeleOp extends Command {
     }
 
     // Uncomment if manual arm / wrist control is needed
-    if (Robot.opJoy.getPOV() == 270) {
-      Robot.pickUpArmSubsystem.WristSetHa(0.4);
-    } else if (Robot.opJoy.getPOV() == 90) {
-      Robot.pickUpArmSubsystem.WristSetHa(-0.6);
+    if (Robot.opJoy.getPOV() == 270 ||
+    Robot.opJoy.getPOV() == 270 - 45||
+    Robot.opJoy.getPOV() == 270 + 45) {
+      Robot.pickUpArmSubsystem.WristSetHa(0.3);
+    } else if (Robot.opJoy.getPOV() == 90 ||
+    Robot.opJoy.getPOV() == 90 - 45||
+    Robot.opJoy.getPOV() == 90 + 45) {
+      Robot.pickUpArmSubsystem.WristSetHa(-0.35);
     } else {
       Robot.pickUpArmSubsystem.WristSetHa(0.0);
     }
 
     
-    if (Robot.opJoy.getPOV() == 180) {
+    if (Robot.opJoy.getPOV() == 180 ||
+    Robot.opJoy.getPOV() == 180 - 45||
+    Robot.opJoy.getPOV() == 180 + 45) {
       Robot.pickUpArmSubsystem.ElbowSetHa(-0.4);
-    } else if (Robot.opJoy.getPOV() == 0) {
+    } else if (Robot.opJoy.getPOV() == 0 ||
+    Robot.opJoy.getPOV() == 0 - 45||
+    Robot.opJoy.getPOV() == 0 + 45) {
       Robot.pickUpArmSubsystem.ElbowSetHa(0.7);
     } else {
       Robot.pickUpArmSubsystem.ElbowSetHa(0.0);

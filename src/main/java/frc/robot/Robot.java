@@ -90,7 +90,7 @@ public class Robot extends TimedRobot {
 
   public static PIDF visionTurnPIDF = new PIDF(0.5, 0, 0, 0);
   public static PIDF visionStrafePIDF = new PIDF(0.1, 0, 0, 0);
-  public static PIDF dartPIDF = new PIDF(0.002, 0, 0, 0);
+  public static PIDF dartPIDF = new PIDF(0.003, 0, 0, 0);
   public static PIDF wristPIDF = new PIDF(0.001, 0, 0, 0);
   public static PIDF gyroPIDF = new PIDF(0.08, 0, 0, 0);
   public static PIDF lidarPIDF = new PIDF(0.08, 0, 0, 0);
@@ -147,6 +147,7 @@ public class Robot extends TimedRobot {
     limelightSubsystem.init();
 
     camera = cserver.startAutomaticCapture();
+    camera.setResolution(320, 240);
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);
@@ -176,8 +177,8 @@ public class Robot extends TimedRobot {
 
     dartController = new PIDController(dartPIDF.vkP, dartPIDF.vkI, dartPIDF.vkD,dartPIDF.vkF,
     dartSource,dartOutput);
-    gyroController.setInputRange(0.0f, 4000.0f);
-    gyroController.setOutputRange(-0.70, 0.70);
+    gyroController.setInputRange(-3000.0f, 0.0f);
+    gyroController.setOutputRange(-0.75, 0.75);
     gyroController.setAbsoluteTolerance(kToleranceDegrees);
     gyroController.setContinuous(false);
 
