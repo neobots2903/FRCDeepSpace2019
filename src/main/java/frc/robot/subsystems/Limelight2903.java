@@ -72,7 +72,7 @@ public class Limelight2903 extends Subsystem {
   public double getTX() {
     double value = getEntryDouble(tx);
     SmartDashboard.putNumber("TX", value);
-    return value;
+    return -value;
   }
 
   public double getTV() {

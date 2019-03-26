@@ -31,6 +31,10 @@ public class TeleOp extends Command {
   boolean ArmConfinedLock = false;
   boolean autoPositionLock = false;
 
+  boolean autoAligned = false;
+  int targetArea = 35;
+  int lidarTarget = 69;
+
   boolean HandLock = false;
   boolean HandState = false;
 
@@ -63,6 +67,13 @@ public class TeleOp extends Command {
     double forward = -Robot.driveJoy.getRawAxis(1);
     double side = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
+
+    if(Math.abs(turn) > 0.9) {
+      Robot.driveSubsystem.setFront(DriveState.Traction);
+      Robot.driveSubsystem.setRear(DriveState.Mecanum);
+    } else {
+      Robot.driveSubsystem.setAll(Robot.driveSubsystem.getDriveState());
+    }
 
     SmartDashboard.putNumber("Turn Speed", turn);
 
@@ -98,10 +109,46 @@ public class TeleOp extends Command {
 
     if (AutoAimState) {
       Robot.limelightSubsystem.setTargetMode();
-      Robot.visionTurnController.enable();
-      turn = Robot.visionTurnValue;
+      Robot.visionStrafeController.enable();//Autonomous awarddddddddddddd
+      turn = Robot.visionStrafeValue;
+
+      double tx = Robot.limelightSubsystem.getTX();
+      double ta = Robot.limelightSubsystem.getTA();
+      if(Math.abs(tx) < 5) {  //if within turn error
+        if (Robot.lidarSubsystem.getStatus(LidarPosition.Left) == 0 && 
+        Robot.lidarSubsystem.getStatus(LidarPosition.Right) == 0) { //if lidar working
+          if (Robot.lidarSubsystem.getDistance(LidarPosition.Left) < lidarTarget || 
+          Robot.lidarSubsystem.getDistance(LidarPosition.Right) < lidarTarget) { //if too far away
+            Robot.driveSubsystem.tankDrive( //drive closer to target
+              percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Left), lidarTarget),
+              percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Right), lidarTarget)
+            );
+          } else {  //if close enough to target
+          autoAligned = true;
+          }
+        } else if (Robot.limelightSubsystem.getTA() < targetArea) {  //if lidar values are unreliable, use vision
+          forward = (Math.abs(ta) > targetArea) ? 0 : percentToTarget(ta,targetArea)/3;
+        } else {
+          autoAligned = true;
+        }
+      }
+
+      if (autoAligned) {
+        Robot.driveSubsystem.arcadeDrive(0,0);
+        HandState = !HandState; //toggle arm (false = panel locked in)
+          if (HandState) {
+            Robot.pickUpArmSubsystem.eject();
+          } else {
+            doForTime(300, () -> Robot.driveSubsystem.arcadeDrive(0.2,0));
+            Robot.pickUpArmSubsystem.retract();
+          }
+          doForTime(400, () -> Robot.driveSubsystem.arcadeDrive(-0.7,0));
+          autoAligned = false;
+          AutoAimState = false;
+      }
     } else {
-      Robot.visionTurnController.disable();
+      autoAligned = false;
+      Robot.visionStrafeController.disable();
       Robot.limelightSubsystem.setLight(false);
     }
 
@@ -128,7 +175,7 @@ public class TeleOp extends Command {
 
     if (Robot.driveJoy.getRawButton(1)) {
       if (!MecanumLock)
-        Robot.driveSubsystem.mecanumDown();
+        Robot.driveSubsystem.setAll(DriveState.Mecanum);
       MecanumLock = true;
     } else {
       MecanumLock = false;
@@ -136,7 +183,7 @@ public class TeleOp extends Command {
 
     if (Robot.driveJoy.getRawButton(2)) {
       if (!TractionLock)
-        Robot.driveSubsystem.tractionDown();
+        Robot.driveSubsystem.setAll(DriveState.Traction);
         TractionLock = true;
     } else {
       TractionLock = false;
@@ -144,15 +191,16 @@ public class TeleOp extends Command {
 
     if (Robot.opJoy.getRawButton(6)) {
       if (!HandLock)
-        if (HandState)
-          Robot.pickUpArmSubsystem.eject();
-        else
-          Robot.pickUpArmSubsystem.retract();
         HandState = !HandState;
         HandLock = true;
     } else {
       HandLock = false;
     }
+
+    if (HandState)
+      Robot.pickUpArmSubsystem.eject();
+    else
+      Robot.pickUpArmSubsystem.retract();
     
     if (Robot.opJoy.getRawButton(4)) {
       if (!ArmTopLock)
@@ -235,6 +283,18 @@ public class TeleOp extends Command {
     Robot.limelightSubsystem.getTA();
     Robot.limelightSubsystem.getTX();
     Robot.limelightSubsystem.getTS();
+  }
+
+  double percentToTarget(double value, double target) {
+    double sign = (value < 0) ? -1 : 1;
+    return ((target - Math.abs(value)) / target) * sign;
+  }
+
+  void doForTime(double millis, Runnable work) {  // Loop any piece of code for a set amount of time
+    double end = System.currentTimeMillis() + millis;
+    while (System.currentTimeMillis() < end)
+      work.run();
+    return;
   }
 
   // Make this return true when this Command no longer needs to run execute()

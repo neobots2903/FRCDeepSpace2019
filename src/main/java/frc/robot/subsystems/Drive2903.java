@@ -31,8 +31,10 @@ public class Drive2903 extends Subsystem {
   MecanumDrive mecanumDrive;
   PowerDistributionPanel pdp;
 
-  Solenoid driveLower;
-  Solenoid driveLift;
+  Solenoid driveFrontLower;
+  Solenoid driveFrontLift;
+  Solenoid driveRearLower;
+  Solenoid driveRearLift;
 
   DriveState currentDriveState = DriveState.Traction;
 
@@ -57,8 +59,11 @@ public class Drive2903 extends Subsystem {
     RightFrontMotor = new WPI_TalonSRX(RobotMap.RightFrontMotor);
     LeftRearMotor = new WPI_TalonSRX(RobotMap.LeftRearMotor);
     RightRearMotor = new WPI_TalonSRX(RobotMap.RightRearMotor);
-    driveLower = new Solenoid(RobotMap.driveLower);
-    driveLift = new Solenoid(RobotMap.driveLift);
+
+    driveFrontLower = new Solenoid(RobotMap.driveFrontLower);
+    driveFrontLift = new Solenoid(RobotMap.driveFrontLift);
+    driveRearLower = new Solenoid(RobotMap.driveRearLower);
+    driveRearLift = new Solenoid(RobotMap.driveRearLift);
 
     LeftFrontMotor.set(ControlMode.PercentOutput, 0);
     LeftRearMotor.set(ControlMode.PercentOutput, 0);
@@ -69,7 +74,7 @@ public class Drive2903 extends Subsystem {
 
     mecanumDrive = new MecanumDrive(LeftFrontMotor, LeftRearMotor, RightFrontMotor, RightRearMotor);
     mecanumDrive.setRightSideInverted(true);
-    tractionDown();
+    setAll(DriveState.Traction);
     SmartDashboard.putNumber("Strafe adjust", 0.00);
   }
 
@@ -121,6 +126,13 @@ public void cartesianDrive(double forward, double side, double turn) {
   mecanumDrive.driveCartesian(side, -forward, -turn);
 }
 
+public void tankDrive (double leftSpeed, double rightSpeed) {
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
+  LeftFrontMotor.set(ControlMode.PercentOutput, leftSpeed);
+  LeftRearMotor.set(ControlMode.PercentOutput, leftSpeed);
+  RightFrontMotor.set(ControlMode.PercentOutput, rightSpeed);
+  RightRearMotor.set(ControlMode.PercentOutput, rightSpeed);
+}
 public void arcadeDrive(double forward, double side, double turn) {
   setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
   //THIS ATTEMPTS TO HOLD A HEADING WHILE DRIVING STRAIGHT / STRAFING
@@ -176,16 +188,30 @@ public void arcadeDrive(double forward, double side, double turn) {
     Traction, Mecanum
   }
 
-  public void mecanumDown() {
-    driveLower.set(true);
-    driveLift.set(false);
-    currentDriveState = DriveState.Mecanum;
+  public void setRear(DriveState state) {
+    if (DriveState.Traction == state) {
+      driveRearLower.set(false);
+      driveRearLift.set(true);
+    } else if (DriveState.Mecanum == state){
+      driveRearLower.set(true);
+      driveRearLift.set(false);
+    }
   }
 
-  public void tractionDown() {
-    driveLower.set(false);
-    driveLift.set(true);
-    currentDriveState = DriveState.Traction;
+  public void setFront(DriveState state) {
+    if (DriveState.Traction == state) {
+      driveFrontLower.set(false);
+      driveFrontLift.set(true);
+    } else if (DriveState.Mecanum == state){
+      driveFrontLower.set(true);
+      driveFrontLift.set(false);
+    }
+  }
+
+  public void setAll(DriveState state) {
+    setFront(state);
+    setRear(state);
+    currentDriveState = state;
   }
 
   public DriveState getDriveState() {

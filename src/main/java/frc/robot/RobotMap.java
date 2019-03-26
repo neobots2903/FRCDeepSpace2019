@@ -28,11 +28,11 @@ public class RobotMap {
 
   //Talon SRX IDs
   public static final int DartMotor = 35;
-  public static final int WristMotor = 34;
-  public static final int LeftFrontMotor = 37;
-  public static final int RightFrontMotor = 40;
-  public static final int LeftRearMotor = 38;
-  public static final int RightRearMotor = 31;
+  public static final int WristMotor = 8;
+  public static final int LeftFrontMotor = 33;
+  public static final int RightFrontMotor = 31;
+  public static final int LeftRearMotor = 34;
+  public static final int RightRearMotor = 32;
 
   //Controller #'s
   public static final int DriveJoy = 0;
@@ -61,6 +61,8 @@ public class RobotMap {
   public static final int rampLower = 2;
   public static final int rampLift = 3;
 
-  public static final int driveLower = 4;
-  public static final int driveLift = 5;
+  public static final int driveFrontLower = 4;
+  public static final int driveFrontLift = 5;
+  public static final int driveRearLower = 6;
+  public static final int driveRearLift = 7;
 }

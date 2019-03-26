@@ -74,7 +74,7 @@ public class PickUpArm2903 extends Subsystem implements Runnable{
         leftIntakeMotor = new TalonSRX(RobotMap.TBD);
         rightIntakeMotor = new TalonSRX(RobotMap.TBD);
         wristMotor = new TalonSRX(RobotMap.WristMotor);
-        //wristMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
+        wristMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
         elbowMotor = new TalonSRX(RobotMap.DartMotor);
         panelRetract = new Solenoid(RobotMap.panelRetract);
         panelEject = new Solenoid(RobotMap.panelEject);

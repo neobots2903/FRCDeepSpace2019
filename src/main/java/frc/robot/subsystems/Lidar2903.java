@@ -11,14 +11,18 @@ public class Lidar2903 {
   int centerStatus = 0;
   int rightDistance = 0;
   int rightStatus = 0;
+  boolean noLidar = false;
 
   public Lidar2903() {
     try {
       arduino = new SerialPort(9600, SerialPort.Port.kUSB);
-    } catch (Exception ex) { }
+    } catch (Exception ex) {
+      noLidar = true;
+    }
   }
 
   public void updateData() {
+    if (noLidar) return;
     String dist = arduino.readString();
     String[] distLines = dist.split("\r\n");
     String[] actuallyImportant = (distLines.length >= 7)
@@ -52,6 +56,7 @@ public class Lidar2903 {
   }
 
   public int getDistance(LidarPosition pos) {
+    if (noLidar) return -1;
     updateData();
     if (pos == LidarPosition.Left)
       return leftDistance;
@@ -63,9 +68,10 @@ public class Lidar2903 {
       return 0;
   }
 
-  public int getStatus(LidarPosition pos) {
-    updateData();
-    if (pos == LidarPosition.Left)
+  public int getStatus(LidarPosition pos) { 
+    if (noLidar) return 9;                  //if 0, distance is reliable
+    updateData();                           //if 2, distance may be slightly off
+    if (pos == LidarPosition.Left)          //if anything else, distance is unreliable
       return leftStatus;
     else if (pos == LidarPosition.Center)
       return centerStatus;
