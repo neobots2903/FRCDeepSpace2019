@@ -122,19 +122,19 @@ public void turnToDegree(double degree) {
 }
 
 public void cartesianDrive(double forward, double side, double turn) {
-  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,4));
   mecanumDrive.driveCartesian(side, -forward, -turn);
 }
 
 public void tankDrive (double leftSpeed, double rightSpeed) {
-  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,4));
   LeftFrontMotor.set(ControlMode.PercentOutput, leftSpeed);
   LeftRearMotor.set(ControlMode.PercentOutput, leftSpeed);
   RightFrontMotor.set(ControlMode.PercentOutput, rightSpeed);
   RightRearMotor.set(ControlMode.PercentOutput, rightSpeed);
 }
 public void arcadeDrive(double forward, double side, double turn) {
-  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,2));
+  setPowerPercent(Math.pow(pdp.getVoltage()/idealVoltage,4));
   //THIS ATTEMPTS TO HOLD A HEADING WHILE DRIVING STRAIGHT / STRAFING
   //**EXPERIMENTAL!**
   double f_turn = 0;

@@ -32,7 +32,7 @@ public class TeleOp extends Command {
   boolean autoPositionLock = false;
 
   boolean autoAligned = false;
-  int targetArea = 35;
+  double targetArea = 3.2;
   int lidarTarget = 69;
 
   boolean HandLock = false;
@@ -136,13 +136,13 @@ public class TeleOp extends Command {
       if (autoAligned) {
         Robot.driveSubsystem.arcadeDrive(0,0);
         HandState = !HandState; //toggle arm (false = panel locked in)
+        doForTime(300, () -> Robot.driveSubsystem.arcadeDrive(0.4,0));
           if (HandState) {
             Robot.pickUpArmSubsystem.eject();
           } else {
-            doForTime(300, () -> Robot.driveSubsystem.arcadeDrive(0.2,0));
             Robot.pickUpArmSubsystem.retract();
           }
-          doForTime(400, () -> Robot.driveSubsystem.arcadeDrive(-0.7,0));
+          doForTime(400, () -> Robot.driveSubsystem.arcadeDrive(-0.5,0));
           autoAligned = false;
           AutoAimState = false;
       }
@@ -227,22 +227,12 @@ public class TeleOp extends Command {
     }
 
     if (Robot.opJoy.getRawButton(2)) {
-      if (!ArmFloorLock)
-        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Floor);
-        ArmFloorLock = true;
-    } else {
-      ArmFloorLock = false;
-    }
-
-    /*
-    if (Robot.opJoy.getRawButton(9)) { //Button is random, needs to change (probably)
       if (!ArmConfinedLock)
-        Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
+        Robot.pickUpArmSubsystem.setArmAsync(ArmState.Confined);
         ArmConfinedLock = true;
     } else {
       ArmConfinedLock = false;
     }
-    */
 
 
     if (Robot.opJoy.getRawButton(5)) { //Button is random, needs to change (probably)

@@ -27,14 +27,14 @@ public class Ramp2903 extends Subsystem {
     }
 
     public void openRamp() {
-        Robot.pickUpArmSubsystem.setArm(ArmState.Confined);
+        //Robot.pickUpArmSubsystem.setTargetsGradually(ArmState.Confined);
         liftRamp();
         rightRamp.setPosition(R_RAMP_CLOSE);
         leftRamp.setPosition(L_RAMP_CLOSE);
     }
 
     public void closeRamp() {
-        Robot.pickUpArmSubsystem.setArm(ArmState.Away);
+        Robot.pickUpArmSubsystem.setTargetsGradually(ArmState.Top);
         rightRamp.setPosition(R_RAMP_OPEN);
         leftRamp.setPosition(L_RAMP_OPEN);
         lowerRamp();
