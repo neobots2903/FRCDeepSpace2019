@@ -12,12 +12,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 import frc.robot.subsystems.Lidar2903.LidarPosition;
 import frc.robot.subsystems.PickUpArm2903.ArmState;
-import frc.robot.subsystems.Drive2903.DriveState;
 
 /**
  * Super duper TeleOp command
  */
-public class TeleOp extends Command {
+public class SwerveTeleOp extends Command {
 
   boolean RampLiftLock = false;
   boolean RampLowerLock = false;
@@ -41,9 +40,9 @@ public class TeleOp extends Command {
   boolean AutoAimLock = false;
   boolean AutoAimState = false;
 
-  public TeleOp() {
+  public SwerveTeleOp() {
     // Use requires() here to declare subsystem dependencies
-    requires(Robot.driveSubsystem);
+    requires(Robot.swerveDriveSubsystem);
   }
 
   // Called just before this Command runs the first time
@@ -64,18 +63,11 @@ public class TeleOp extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double forward = -Robot.driveJoy.getRawAxis(1);
-    double side = Robot.driveJoy.getRawAxis(0);
+    double y = -Robot.driveJoy.getRawAxis(1);
+    double x = Robot.driveJoy.getRawAxis(0);
     double turn = Robot.driveJoy.getRawAxis(4);
 
-    // if(Math.abs(turn) > 0.9) {
-    //   Robot.driveSubsystem.setFront(DriveState.Traction);
-    //   Robot.driveSubsystem.setRear(DriveState.Mecanum);
-    // } else {
-    //   Robot.driveSubsystem.setAll(Robot.driveSubsystem.getDriveState());
-    // }
-
-    
+    Robot.swerveDriveSubsystem.swerveDrive(y, Robot.swerveDriveSubsystem.joystickAngle(x, y), turn);
 
     SmartDashboard.putNumber("Turn Speed", turn);
 
@@ -91,16 +83,6 @@ public class TeleOp extends Command {
     SmartDashboard.putNumber("Gyro Angle", Robot.navXSubsystem.turnAngle());
     SmartDashboard.putBoolean("Collision Detected", Robot.navXSubsystem.isColliding());
 
-    //SmartDashboard.putNumber("Right Ramp Servo", Robot.rampSubsystem.rightRamp.get());
-    //SmartDashboard.putNumber("Left Ramp Servo", Robot.rampSubsystem.leftRamp.get());
-    //SmartDashboard.putNumber("Small Ramp Servo", Robot.rampSubsystem.smallRamp.get());
-
-    /*
-    SmartDashboard.putBoolean("Line left?", Robot.lineSubsystem.leftDetected());
-    SmartDashboard.putBoolean("Line center?", Robot.lineSubsystem.centerDetected());
-    SmartDashboard.putBoolean("Line right?", Robot.lineSubsystem.rightDetected());
-    */
-
     if (Robot.driveJoy.getRawButton(4)) {
       if (!AutoAimLock)
           AutoAimState = !AutoAimState;
@@ -108,56 +90,6 @@ public class TeleOp extends Command {
     } else {
       AutoAimLock = false;
     }
-
-    if (AutoAimState) {
-      Robot.limelightSubsystem.setTargetMode();
-      Robot.visionStrafeController.enable();//Autonomous awarddddddddddddd
-      turn = Robot.visionStrafeValue;
-
-      double tx = Robot.limelightSubsystem.getTX();
-      double ta = Robot.limelightSubsystem.getTA();
-      if(Math.abs(tx) < 5) {  //if within turn error
-        if (Robot.lidarSubsystem.getStatus(LidarPosition.Left) == 0 && 
-        Robot.lidarSubsystem.getStatus(LidarPosition.Right) == 0) { //if lidar working
-          if (Robot.lidarSubsystem.getDistance(LidarPosition.Left) < lidarTarget || 
-          Robot.lidarSubsystem.getDistance(LidarPosition.Right) < lidarTarget) { //if too far away
-            Robot.driveSubsystem.tankDrive( //drive closer to target
-              percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Left), lidarTarget),
-              percentToTarget(Robot.lidarSubsystem.getDistance(LidarPosition.Right), lidarTarget)
-            );
-          } else {  //if close enough to target
-          autoAligned = true;
-          }
-        } else if (Robot.limelightSubsystem.getTA() < targetArea) {  //if lidar values are unreliable, use vision
-          forward = (Math.abs(ta) > targetArea) ? 0 : percentToTarget(ta,targetArea)/3;
-        } else {
-          autoAligned = true;
-        }
-      }
-
-      if (autoAligned) {
-        Robot.driveSubsystem.arcadeDrive(0,0);
-        HandState = !HandState; //toggle arm (false = panel locked in)
-        doForTime(300, () -> Robot.driveSubsystem.arcadeDrive(0.4,0));
-          if (HandState) {
-            Robot.pickUpArmSubsystem.eject();
-          } else {
-            Robot.pickUpArmSubsystem.retract();
-          }
-          doForTime(400, () -> Robot.driveSubsystem.arcadeDrive(-0.5,0));
-          autoAligned = false;
-          AutoAimState = false;
-      }
-    } else {
-      autoAligned = false;
-      Robot.visionStrafeController.disable();
-      Robot.limelightSubsystem.setLight(false);
-    }
-
-    if (!Robot.driveSubsystem.getDriveState().equals(DriveState.Mecanum))
-      Robot.driveSubsystem.cartesianDrive(forward, side, turn);
-    else
-      Robot.driveSubsystem.arcadeDrive(forward, turn);
 
     if (Robot.opJoy.getRawButton(7)) {
       if (!RampLiftLock)
@@ -173,22 +105,6 @@ public class TeleOp extends Command {
         RampLowerLock = true;
     } else {
       RampLowerLock = false;
-    }
-
-    if (Robot.driveJoy.getRawButton(1)) {
-      if (!MecanumLock)
-        Robot.driveSubsystem.setAll(DriveState.Mecanum);
-      MecanumLock = true;
-    } else {
-      MecanumLock = false;
-    } 
-
-    if (Robot.driveJoy.getRawButton(2)) {
-      if (!TractionLock)
-        Robot.driveSubsystem.setAll(DriveState.Traction);
-        TractionLock = true;
-    } else {
-      TractionLock = false;
     }
 
     if (Robot.opJoy.getRawButton(6)) {

@@ -41,6 +41,7 @@ public class Robot extends TimedRobot {
 
   public static TeleOp teleopCommand;
   public static Drive2903 driveSubsystem;
+  public static SwerveDrive2903 swerveDriveSubsystem;
   public static NavX2903 navXSubsystem;
 
   public static PIDController gyroController;
@@ -120,6 +121,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_oi = new OI();
     driveSubsystem = new Drive2903();
+    swerveDriveSubsystem = new SwerveDrive2903();
     navXSubsystem = new NavX2903();
     teleopCommand = new TeleOp();
 
